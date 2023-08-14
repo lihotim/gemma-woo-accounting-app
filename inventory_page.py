@@ -46,7 +46,8 @@ def inventory():
     # Display the current inventory table
     st.divider()
     st.header("Current Inventory")
-    # st.dataframe(df)
+    st.subheader("All")
+    st.dataframe(df)
 
     # col1, col2 = st.columns(2)
     sam_gau_data = df[df["brand"] == "Sam Gau"]

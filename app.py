@@ -3,8 +3,11 @@ from streamlit_option_menu import option_menu
 
 # pages
 from inventory_page import inventory
+from income_page import income
+from expense_page import expense
+from statistics_page import statistics
 
-OPTIONS = ["Inventory", "Income", "Expense", "Charts"]
+OPTIONS = ["Inventory", "Income", "Expense", "Statistics"]
 
 
 def streamlit_menu():
@@ -26,8 +29,11 @@ if selected == OPTIONS[0]:
     # st.title(f"{selected}")
     inventory()
 if selected == OPTIONS[1]:
-    st.title(f"{selected}")
+    # st.title(f"{selected}")
+    income()
 if selected == OPTIONS[2]:
-    st.title(f"{selected}")
+    # st.title(f"{selected}")
+    expense()
 if selected == OPTIONS[3]:
-    st.title(f"{selected}")
+    # st.title(f"{selected}")
+    statistics()
