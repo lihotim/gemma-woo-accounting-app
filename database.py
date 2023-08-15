@@ -36,20 +36,30 @@ def fetch_all_herbs():
     res = db.fetch()
     return res.items
 
-
 # print(fetch_all_herbs())
 
 
-def get_herb(username):
+def get_herb(herb_id):
     """If not found, the function will return None"""
-    return db.get(username)
+    return db.get(herb_id)
 
 
-def update_herb(username, updates):
+# print(get_herb("h13"))
+
+
+def update_herb(herb_id, new_unit_price, new_inventory):
     """If the item is updated, returns None. Otherwise, an exception is raised"""
-    return db.update(updates, username)
+    updates = {
+        "unit_price":new_unit_price,
+        "inventory":new_inventory,
+    }
+    return db.update(updates, herb_id)
+
+# print(update_herb("h01", {"inventory":99}))
 
 
-def delete_herb(username):
+def delete_herb(herb_id):
     """Always returns None, even if the key does not exist"""
-    return db.delete(username)
+    return db.delete(herb_id)
+
+# print(delete_herb("h14"))

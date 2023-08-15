@@ -9,7 +9,6 @@ from statistics_page import statistics
 
 OPTIONS = ["Inventory", "Income", "Expense", "Statistics"]
 
-
 def streamlit_menu():
     # 2. horizontal menu w/o custom style
     selected = option_menu(
@@ -21,7 +20,6 @@ def streamlit_menu():
         orientation="horizontal",
     )
     return selected
-
 
 selected = streamlit_menu()
 
