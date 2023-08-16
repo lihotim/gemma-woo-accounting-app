@@ -12,7 +12,7 @@ def fetch_all_incomes_cached():
 def income():
     st.header("Add Income")
     date = st.date_input("Date")
-    category = st.selectbox("Category", ["Consultation", "Herb sale", "Class", "Other"])
+    category = st.selectbox("Category", ["Consultation", "Herb sale", "Class", "Others"])
     item = st.text_input("Item")
     customer = st.text_input("Customer")
     amount = st.number_input("Amount", step=1, min_value=0)
