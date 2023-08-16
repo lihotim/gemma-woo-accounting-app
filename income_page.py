@@ -41,7 +41,7 @@ def income():
     date = st.date_input("Date")
     category = st.selectbox("Category", CATEGORIES)
     item = st.text_input("Item")
-    customer = st.text_input("Customer")
+    customer = st.text_input("Customer name")
     amount = st.number_input("Amount", step=1, min_value=0)
     if st.button("Add New Income item"):
         add_income_item(date, category, item, customer, amount)
@@ -107,11 +107,9 @@ def income():
 
 
     # Show pie chart and table in 2 columns
-    # st.divider()
     col1, col2 = st.columns([2,1])
     with col1:
         st.subheader("Income Pie Chart")
-        # income_by_category = df_income.groupby("category")["amount"].sum()
         income_by_category = filtered_df_income.groupby("category")["amount"].sum()
         fig, ax = plt.subplots(figsize=(8, 6))
         wedges, texts, autotexts = ax.pie(
