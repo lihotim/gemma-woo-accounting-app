@@ -8,6 +8,7 @@ from expense_page import expense
 from statistics_page import statistics
 
 # features we want:
+# - For "Inventory" page, should add "+", "-" buttons to update the inventory more easily
 # - update incomes and expenses using st.editor
 # - sort incomes and expenses by month or season (st.multiselect), e.g. only showing Aug or Jun-Aug
 # - In "Statistics" page, may show metrics in delta, e.g. change in income/expense compared with last month
