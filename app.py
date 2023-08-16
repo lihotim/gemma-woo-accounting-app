@@ -7,6 +7,12 @@ from income_page import income
 from expense_page import expense
 from statistics_page import statistics
 
+# features we want:
+# - update incomes and expenses using st.editor
+# - sort incomes and expenses by month or season (st.multiselect), e.g. only showing Aug or Jun-Aug
+# - In "Statistics" page, may show metrics in delta, e.g. change in income/expense compared with last month
+# - Export charts or diagrams in jpg, doc, csv...
+
 OPTIONS = ["Inventory", "Income", "Expense", "Statistics"]
 
 def streamlit_menu():
