@@ -12,6 +12,7 @@ from statistics_page import statistics
 # - sort incomes and expenses by month or season (st.multiselect), e.g. only showing Aug or Jun-Aug
 # - In "Statistics" page, may show metrics in delta, e.g. change in income/expense compared with last month
 # - Export charts or diagrams in jpg, doc, csv...
+# - check: for st.editor, can we insert a new row directly?
 
 OPTIONS = ["Inventory", "Income", "Expense", "Statistics"]
 
