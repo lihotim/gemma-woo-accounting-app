@@ -43,7 +43,7 @@ def income():
     item = st.text_input("Item")
     customer = st.text_input("Customer name")
     amount = st.number_input("Amount", step=1, min_value=0)
-    if st.button("Add New Income item"):
+    if st.button("Add New Income Item"):
         add_income_item(date, category, item, customer, amount)
 
 
@@ -123,8 +123,7 @@ def income():
 
     with col2:
         st.subheader("Income by Category")
-        income_table = pd.DataFrame(income_by_category).reset_index()
-        income_table.columns = ["category", "amount"]
+        income_table = pd.DataFrame(income_by_category)
         income_table = income_table.sort_values(by="amount", ascending=False)
         st.dataframe(
             income_table, 
