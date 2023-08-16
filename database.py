@@ -71,14 +71,14 @@ def delete_herb(herb_id):
 
 # ---- 2. income_db ----
 
-def insert_income(time, category, customer, item, amount):
+def insert_income(time, category, item, customer, amount):
     """Returns the item on a successful income creation, otherwise raises and error"""
     return income_db.put(
         {
             "key": time,
             "category": category,
-            "customer": customer,
             "item": item,
+            "customer": customer,
             "amount": amount,
         }
     )
