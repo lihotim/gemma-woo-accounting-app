@@ -53,15 +53,16 @@ def remove_herb(herb_id):
 
 
 def inventory():
-    column_order = ["key", "brand", "herb_name", "unit_price", "inventory"]
+    COLUMN_ORDER = ["key", "brand", "herb_name", "unit_price", "inventory"]
+    BRANDS = ["Sam Gau", "Hoi Tin", "Others"]
     data = fetch_all_herbs_cache()
     df_inventory = pd.DataFrame(data)
-    df_inventory = df_inventory[column_order]
+    df_inventory = df_inventory[COLUMN_ORDER]
 
     # Display input fields for adding new inventory entries
     st.header("Add New Herb")
     herb_id = st.text_input("Herb ID")
-    brand = st.selectbox("Brand", ["Sam Gau", "Hoi Tin", "Others"])
+    brand = st.selectbox("Brand", BRANDS)
     herb_name = st.text_input("Herb Name")
     unit_price = st.number_input("Unit Price", step=0.1)
     stock = st.number_input("Stock", step=1)
@@ -79,7 +80,7 @@ def inventory():
 
     col1, col2 = st.columns([2,1])
     with col1:
-        st.subheader("All Herbs")
+        st.subheader("Edit Herbs:")
         edited_df_inventory = st.data_editor(
             df_inventory, 
             use_container_width=True,
@@ -97,7 +98,7 @@ def inventory():
             update_inventory(df_inventory, edited_df_inventory)
     
     with col2:
-        st.subheader("Remove a herb")
+        st.subheader("Remove a herb:")
         chosen_herb_id = st.text_input("Input Herb ID to remove it:")
         with st.expander("Confirm delete herb", expanded=False):
             delete_button = st.button("Confirm")
@@ -114,30 +115,24 @@ def inventory():
                 
 
     st.divider()
-    
+
     # Use for loop to output these 3 tables, and change config
-    # Filter data for "Sam Gau" brand
-    sam_gau_data = df_inventory[df_inventory["brand"] == "Sam Gau"]
-    sam_gau_data = sam_gau_data[column_order]
-    sam_gau_data = sam_gau_data.drop(columns=["brand"])
-    st.subheader("Sam Gau")
-    st.dataframe(sam_gau_data, hide_index = True)
-
-
-    # Filter data for "Hoi Tin" brand
-    hoi_tin_data = df_inventory[df_inventory["brand"] == "Hoi Tin"]
-    hoi_tin_data = hoi_tin_data[column_order]
-    hoi_tin_data = hoi_tin_data.drop(columns=["brand"])
-    st.subheader("Hoi Tin")
-    st.dataframe(hoi_tin_data, hide_index = True)
-
-    # Filter data for other brands
-    other_brands_data = df_inventory[(df_inventory["brand"] != "Sam Gau") & (df_inventory["brand"] != "Hoi Tin")]
-    other_brands_data = other_brands_data[column_order]
-    other_brands_data = other_brands_data.drop(columns=["brand"])
-
-    st.subheader("Others")
-    st.dataframe(other_brands_data, hide_index = True)
+    for brand in BRANDS:
+        brand_data = df_inventory[df_inventory["brand"] == brand]
+        brand_data = brand_data[COLUMN_ORDER]
+        brand_data = brand_data.drop(columns=["brand"])
+        st.subheader(brand)
+        st.dataframe(
+            brand_data, 
+            hide_index=True,
+            use_container_width=True,
+            column_config={
+                "key": st.column_config.Column("Herb ID", disabled=True, help="Info: Not editable"),
+                "herb_name": st.column_config.TextColumn("Herb Name"),
+                "unit_price": st.column_config.NumberColumn("Unit Price", format="$%d"),
+                "inventory": st.column_config.NumberColumn("Inventory"),
+            }
+        )
 
 
 # Run the app
