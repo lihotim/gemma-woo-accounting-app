@@ -40,9 +40,9 @@ def income():
 
 
     # Show pie chart and table in 2 columns
-    col1, col2 = st.columns(2)
+    col1, col2 = st.columns([2,1])
     with col1:
-        st.subheader("Incomes by Category Chart")
+        st.subheader("Incomes Pie Chart")
         income_by_category = df.groupby("Category")["Amount"].sum()
         fig, ax = plt.subplots(figsize=(8, 6))
         wedges, texts, autotexts = ax.pie(
@@ -55,11 +55,11 @@ def income():
         st.pyplot(fig)
 
     with col2:
-        st.subheader("Incomes by Category Table")
+        st.subheader("Incomes by Category")
         income_table = pd.DataFrame(income_by_category).reset_index()
         income_table.columns = ["Category", "Amount"]
         income_table = income_table.sort_values(by="Amount", ascending=False)
-        st.dataframe(income_table, hide_index=True)
+        st.dataframe(income_table, hide_index=True, use_container_width=True)
 
 
     # Calculate and display total income

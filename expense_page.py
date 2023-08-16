@@ -12,7 +12,7 @@ def fetch_all_expenses_cached():
 
 
 def expense():
-    st.header("Expense")
+    st.header("Add Expense")
     date = st.date_input("Date")
     category = st.selectbox("Category", ["Rent", "Salaries", "Supplies", "Utilities", "Advertising", "Travel", "Other"])
     item = st.text_input("Item")
@@ -39,9 +39,9 @@ def expense():
 
 
     # Show pie chart and table in 2 columns
-    col1, col2 = st.columns(2)
+    col1, col2 = st.columns([2,1])
     with col1:
-        st.subheader("Expense by Category (Chart)")
+        st.subheader("Expenses Pie Chart")
         expense_by_category = df.groupby("Category")["Amount"].sum()
         fig, ax = plt.subplots(figsize=(8, 6))
         wedges, texts, autotexts = ax.pie(
@@ -49,16 +49,16 @@ def expense():
             labels=[f"{label} (${value:.2f})" for label, value in expense_by_category.items()],
             autopct="%1.1f%%",
         )
-        ax.set_title("Expenses by Category (Table)")
+        ax.set_title("Expenses by Category")
         plt.setp(autotexts, size=10, weight="bold")
         st.pyplot(fig)
 
     with col2:
-        st.subheader("Expenses by Category (Table)")
+        st.subheader("Expenses by Category")
         expense_table = pd.DataFrame(expense_by_category).reset_index()
         expense_table.columns = ["Category", "Amount"]
         expense_table = expense_table.sort_values(by="Amount", ascending=False)
-        st.dataframe(expense_table, hide_index=True)
+        st.dataframe(expense_table, hide_index=True, use_container_width=True)
 
 
     # Calculate and display total expense
