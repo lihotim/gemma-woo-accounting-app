@@ -4,9 +4,12 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 import database as db
 
+# feature we want to add: try to use st.data_editor to manage update, delete (on_change)
+
 @st.cache_data
 def fetch_all_expenses_cached():
     return db.fetch_all_expenses()
+
 
 def expense():
     st.header("Expense")
@@ -50,13 +53,13 @@ def expense():
         plt.setp(autotexts, size=10, weight="bold")
         st.pyplot(fig)
 
-
     with col2:
         st.subheader("Expenses by Category (Table)")
         expense_table = pd.DataFrame(expense_by_category).reset_index()
         expense_table.columns = ["Category", "Amount"]
         expense_table = expense_table.sort_values(by="Amount", ascending=False)
         st.dataframe(expense_table, hide_index=True)
+
 
     # Calculate and display total expense
     st.divider()
