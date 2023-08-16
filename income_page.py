@@ -25,7 +25,7 @@ def income():
         print(f"key: {full_datetime}, Category: {category}, Item: {item}, Customer: {customer}, Amount: {amount}")
         db.insert_income(full_datetime, category, item, customer, amount)
         st.cache_data.clear()
-        st.success("Income has been added.")
+        st.success("Income item has been added.")
 
 
     # Show all incomes

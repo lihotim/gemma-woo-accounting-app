@@ -1,54 +1,44 @@
 import streamlit as st
 import pandas as pd
-import random
-from datetime import datetime, timedelta
+from datetime import datetime
 import matplotlib.pyplot as plt
+import database as db
 
-
-def generate_random_date(start_date, end_date):
-    time_between_dates = end_date - start_date
-    days_between_dates = time_between_dates.days
-    random_number_of_days = random.randrange(days_between_dates)
-    random_date = start_date + timedelta(days=random_number_of_days)
-    return random_date
-
-def generate_sample_expense_data():
-    categories = ["Rent", "Salaries", "Supplies", "Utilities", "Advertising", "Travel", "Other"]
-    start_date = datetime(2023, 1, 1)
-    end_date = datetime(2023, 8, 31)
-
-    data = []
-    for _ in range(10):
-        date = generate_random_date(start_date, end_date)
-        item = f"Item{_ + 1}"
-        category = random.choice(categories)
-        amount = random.randint(50, 500)
-        data.append({"Date": date, "Item": item, "Category": category, "Amount": amount})
-
-    return data
+@st.cache_data
+def fetch_all_expenses_cached():
+    return db.fetch_all_expenses()
 
 def expense():
     st.header("Expense")
-
-     # Display input fields for adding expense entries
     date = st.date_input("Date")
-    item = st.text_input("Item")
     category = st.selectbox("Category", ["Rent", "Salaries", "Supplies", "Utilities", "Advertising", "Travel", "Other"])
-    amount = st.number_input("Amount", step=1)
+    item = st.text_input("Item")
+    amount = st.number_input("Amount", step=1, min_value=0)
     
-    if st.button("Add new Expense item", disabled=True):
-        print(f"Date: {date}, Item: {item}, Category: {category}, Amount: {amount}")
+    if st.button("Add new Expense item"):
+        current_time = datetime.now().strftime("%H:%M:%S")
+        full_datetime = f"{date.strftime('%Y-%m-%d')}-{current_time}"
+        print(f"Key: {full_datetime}, Category: {category}, Item: {item}, Amount: {amount}")
+        db.insert_expense(full_datetime, category, item, amount)
+        st.cache_data.clear()
+        st.success("Expense item has been added.")
 
-    st.subheader("Sample Data of Expense")
-    sample_expense_data = generate_sample_expense_data()
-    df = pd.DataFrame(sample_expense_data)
-    st.dataframe(df)
 
+    # Show all expenses
+    st.divider()
+    st.subheader("All Expenses")
+    column_order = ["key", "category", "item", "amount"]
+    expense_data = fetch_all_expenses_cached()
+    df = pd.DataFrame(expense_data)
+    df = df[column_order]
+    df = df.rename(columns={"key": "Date", "category": "Category", "item": "Item", "amount": "Amount"}) 
+    st.dataframe(df, hide_index=True)
+
+
+    # Show pie chart and table in 2 columns
     col1, col2 = st.columns(2)
-
     with col1:
-        st.subheader("Expense by Category (Pie Chart)")
-        # Create a pie chart to show expenses by category
+        st.subheader("Expense by Category (Chart)")
         expense_by_category = df.groupby("Category")["Amount"].sum()
         fig, ax = plt.subplots(figsize=(8, 6))
         wedges, texts, autotexts = ax.pie(
@@ -56,23 +46,23 @@ def expense():
             labels=[f"{label} (${value:.2f})" for label, value in expense_by_category.items()],
             autopct="%1.1f%%",
         )
-        ax.set_title("Income by Category")
+        ax.set_title("Expenses by Category (Table)")
         plt.setp(autotexts, size=10, weight="bold")
         st.pyplot(fig)
 
 
     with col2:
-        st.subheader("Expense by Category (Table)")
-        # Display expense by category in a table
-        income_table = pd.DataFrame(expense_by_category).reset_index()
-        income_table.columns = ["Category", "Amount"]
-        st.table(income_table)
+        st.subheader("Expenses by Category (Table)")
+        expense_table = pd.DataFrame(expense_by_category).reset_index()
+        expense_table.columns = ["Category", "Amount"]
+        expense_table = expense_table.sort_values(by="Amount", ascending=False)
+        st.dataframe(expense_table, hide_index=True)
 
-    # Calculate and display total income
+    # Calculate and display total expense
+    st.divider()
     total_expense = expense_by_category.sum()
-    # st.subheader("Total Income")
-    # st.write(f"${total_expense:.2f}")
-    st.metric(label = "Total Expense", value = f"{total_expense:.2f}")
+    st.subheader("Total Expense")
+    st.metric(label = "Expense", value = f"{total_expense:.2f}")
 
 if __name__ == "__main__":
     expense()
