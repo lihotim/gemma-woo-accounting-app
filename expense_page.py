@@ -122,7 +122,12 @@ def expense():
         st.pyplot(fig)
 
     with col2:
-        st.subheader("Expense by Category")
+        total_expense = expense_by_category.sum()
+        selected_month_str = ", ".join(selected_month)
+        st.subheader("Total Expense")
+        st.write(f"Period: {selected_month_str}")
+        st.metric(label=f"Period: {selected_month_str}", value=f"${total_expense:.2f}")
+
         expense_table = pd.DataFrame(expense_by_category)
         expense_table = expense_table.sort_values(by="amount", ascending=False)
         st.dataframe(
@@ -135,13 +140,6 @@ def expense():
                 }
         )
 
-
-    # Calculate and display total expense
-    st.divider()
-    total_expense = expense_by_category.sum()
-    selected_month_str = ", ".join(selected_month)
-    st.subheader("Total Expense")
-    st.metric(label=f"Period: {selected_month_str}", value=f"${total_expense:.2f}")
 
 if __name__ == "__main__":
     expense()

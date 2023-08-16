@@ -122,7 +122,12 @@ def income():
         st.pyplot(fig)
 
     with col2:
-        st.subheader("Income by Category")
+        total_income = income_by_category.sum()
+        selected_month_str = ", ".join(selected_month)
+        st.subheader("Total Income")
+        st.write(f"Period: {selected_month_str}")
+        st.metric(label="HKD", value=f"${total_income:.2f}")
+
         income_table = pd.DataFrame(income_by_category)
         income_table = income_table.sort_values(by="amount", ascending=False)
         st.dataframe(
@@ -134,14 +139,6 @@ def income():
                 "amount": st.column_config.NumberColumn("Amount", format="$%d")
                 }
         )
-
-
-    # Calculate and display total income
-    st.divider()
-    total_income = income_by_category.sum()
-    selected_month_str = ", ".join(selected_month)
-    st.subheader("Total Income")
-    st.metric(label=f"Period: {selected_month_str}", value=f"${total_income:.2f}")
 
 
 if __name__ == "__main__":
