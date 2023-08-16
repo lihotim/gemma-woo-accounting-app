@@ -101,7 +101,7 @@ def inventory():
         st.subheader("Remove a herb:")
         chosen_herb_id = st.text_input("Input Herb ID to remove it:")
         with st.expander("Confirm delete herb", expanded=False):
-            delete_button = st.button("Confirm")
+            delete_button = st.button("Confirm", type="primary")
 
         if delete_button:
             if chosen_herb_id:
