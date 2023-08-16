@@ -65,7 +65,6 @@ def income():
     total_income = income_by_category.sum()
     st.subheader("Total Income")
     st.metric(label = "Income", value = f"${total_income:.2f}")
-    # st.write(f"${total_income:.2f}")
 
 if __name__ == "__main__":
     income()
