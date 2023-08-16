@@ -75,9 +75,6 @@ def inventory():
     st.divider()
     st.header("Current Inventory")
 
-    # List of all herbs
-    herb_id_list = df_inventory["key"].tolist()
-
     col1, col2 = st.columns([2,1])
     with col1:
         st.subheader("Edit Herbs:")
@@ -99,6 +96,7 @@ def inventory():
     
     with col2:
         st.subheader("Remove a herb:")
+        herb_id_list = df_inventory["key"].tolist()
         chosen_herb_id = st.text_input("Input Herb ID to remove it:")
         with st.expander("Confirm delete herb", expanded=False):
             delete_button = st.button("Confirm", type="primary")
@@ -115,8 +113,6 @@ def inventory():
                 
 
     st.divider()
-
-    # Use for loop to output these 3 tables, and change config
     for brand in BRANDS:
         brand_data = df_inventory[df_inventory["brand"] == brand]
         brand_data = brand_data[COLUMN_ORDER]
@@ -135,6 +131,5 @@ def inventory():
         )
 
 
-# Run the app
 if __name__ == "__main__":
     inventory()
