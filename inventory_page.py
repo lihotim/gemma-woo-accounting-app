@@ -1,8 +1,7 @@
 import streamlit as st
 import pandas as pd
 import database as db
-
-# feature we want to add: try to use st.data_editor to manage update, delete (on_change)
+import asyncio
 
 @st.cache_data
 def fetch_all_herbs_cache():
@@ -10,11 +9,54 @@ def fetch_all_herbs_cache():
     return data
 
 
+def add_new_herb(herb_id, brand, herb_name, unit_price, stock):
+    async def add_new_herb_async(herb_id, brand, herb_name, unit_price, stock):
+        db.insert_herb(herb_id, brand, herb_name, unit_price, stock)
+        st.cache_data.clear()
+
+    coro = add_new_herb_async(herb_id, brand, herb_name, unit_price, stock)
+    with st.spinner("Adding herb data..."):
+        asyncio.run(coro)
+    st.experimental_rerun()
+
+
+def update_inventory(old_df, edited_df):
+    different_rows = (old_df != edited_df).any(axis=1)
+    herb_id = old_df[different_rows]['key'].values[0]
+    for col in edited_df.columns:
+        if edited_df[col][different_rows].values[0] != old_df[col][different_rows].values[0]:
+            col_changed = col
+            new_value = edited_df.loc[different_rows, col].values[0]
+            if not isinstance(new_value, str):
+                new_value = float(new_value)
+            break
+
+    async def update_herb_async(herb_id, col_changed, new_value):
+        db.update_herb(herb_id, {f"{col_changed}": new_value})
+        st.cache_data.clear()
+
+    coro = update_herb_async(herb_id, col_changed, new_value)
+    with st.spinner("Updating herb data..."):
+        asyncio.run(coro)
+    st.experimental_rerun()
+
+
+def remove_herb(herb_id):
+    async def remove_herb_async(herb_id):
+        db.delete_herb(herb_id)
+        st.cache_data.clear()
+    coro = remove_herb_async(herb_id)
+    with st.spinner("Removing herb data..."):
+        asyncio.run(coro)
+    st.experimental_rerun()
+
+
+
 def inventory():
     column_order = ["key", "brand", "herb_name", "unit_price", "inventory"]
     data = fetch_all_herbs_cache()
-    df = pd.DataFrame(data)
-    df = df[column_order]
+    df_inventory = pd.DataFrame(data)
+    df_inventory = df_inventory[column_order]
 
     # Display input fields for adding new inventory entries
     st.header("Add New Herb")
@@ -25,53 +67,46 @@ def inventory():
     stock = st.number_input("Stock", step=1)
 
     if st.button("Add New Herb"):
-        db.insert_herb(herb_id, brand, herb_name, unit_price, stock)
-        st.cache_data.clear()
-        data = fetch_all_herbs_cache()
-        df = pd.DataFrame(data)
-        df = df[column_order]
-        st.success("Inventory entry added successfully!")
+        add_new_herb(herb_id, brand, herb_name, unit_price, stock)
 
         
-    # ---- Display the current inventory table ----
+    # Display the current inventory table (using st.data_editor)
     st.divider()
     st.header("Current Inventory")
 
-    # All
-    herb_id_list = df["key"].tolist()
-    # print(df)
-    # print(herb_id_list)
+    # List of all herbs
+    herb_id_list = df_inventory["key"].tolist()
 
     col1, col2 = st.columns([2,1])
     with col1:
         st.subheader("All Herbs")
-        st.dataframe(df, use_container_width=True)
+        edited_df_inventory = st.data_editor(
+            df_inventory, 
+            use_container_width=True,
+            num_rows="fixed",
+            hide_index=True,
+            column_config = {
+                "key": st.column_config.Column("Herb ID", disabled=True, help="Info: Not editable"),
+                "brand": st.column_config.TextColumn("Brand"),
+                "herb_name": st.column_config.TextColumn("Herb Name"),
+                "unit_price": st.column_config.NumberColumn("Unit Price", min_value=0, format="$%d"),
+                "inventory": st.column_config.NumberColumn("Inventory", min_value=0, step=1),
+            },
+        )
+        if edited_df_inventory is not None and not edited_df_inventory.equals(df_inventory):
+            update_inventory(df_inventory, edited_df_inventory)
+    
     with col2:
-        st.subheader("Update or delete")
-        choose_herb_id = st.text_input("Input herb id to update or delete:")
-        with st.expander("Update Inventory",expanded=False):
-            new_unit_price = st.number_input("New unit price:", min_value=0, step=1)
-            new_inventory = st.number_input("New inventory:", min_value=0, step=1)
-            update_button = st.button("Update")
-        with st.expander("Delete herb",expanded=False):
-            delete_button = st.button("Delete")
+        st.subheader("Remove a herb")
+        chosen_herb_id = st.text_input("Input Herb ID to remove it:")
+        with st.expander("Confirm delete herb", expanded=False):
+            delete_button = st.button("Confirm")
 
-        if update_button:
-            if choose_herb_id:
-                if choose_herb_id in herb_id_list:
-                    db.update_herb(choose_herb_id, new_unit_price, new_inventory)
-                    st.cache_data.clear()
-                    st.success(f"Updated herb with id: {choose_herb_id}, please refresh the page.")
-                else:
-                    st.warning("Selected herb id does not exist.")
-            else:
-                st.warning("Please select a herb id to update.")
         if delete_button:
-            if choose_herb_id:
-                if choose_herb_id in herb_id_list:
-                    db.delete_herb(choose_herb_id)
-                    st.cache_data.clear()
-                    st.success(f"Deleted herb with id: {choose_herb_id}, please refresh the page.")
+            if chosen_herb_id:
+                if chosen_herb_id in herb_id_list:
+                    remove_herb(chosen_herb_id)
+                    st.success(f"Deleted herb with id: {chosen_herb_id}, please refresh the page.")
                 else:
                     st.warning("Selected herb id does not exist.")
             else:
@@ -79,8 +114,10 @@ def inventory():
                 
 
     st.divider()
+    
+    # Use for loop to output these 3 tables, and change config
     # Filter data for "Sam Gau" brand
-    sam_gau_data = df[df["brand"] == "Sam Gau"]
+    sam_gau_data = df_inventory[df_inventory["brand"] == "Sam Gau"]
     sam_gau_data = sam_gau_data[column_order]
     sam_gau_data = sam_gau_data.drop(columns=["brand"])
     st.subheader("Sam Gau")
@@ -88,14 +125,14 @@ def inventory():
 
 
     # Filter data for "Hoi Tin" brand
-    hoi_tin_data = df[df["brand"] == "Hoi Tin"]
+    hoi_tin_data = df_inventory[df_inventory["brand"] == "Hoi Tin"]
     hoi_tin_data = hoi_tin_data[column_order]
     hoi_tin_data = hoi_tin_data.drop(columns=["brand"])
     st.subheader("Hoi Tin")
     st.dataframe(hoi_tin_data, hide_index = True)
 
     # Filter data for other brands
-    other_brands_data = df[(df["brand"] != "Sam Gau") & (df["brand"] != "Hoi Tin")]
+    other_brands_data = df_inventory[(df_inventory["brand"] != "Sam Gau") & (df_inventory["brand"] != "Hoi Tin")]
     other_brands_data = other_brands_data[column_order]
     other_brands_data = other_brands_data.drop(columns=["brand"])
 

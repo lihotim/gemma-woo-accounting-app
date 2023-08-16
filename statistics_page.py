@@ -16,41 +16,46 @@ def fetch_all_expenses_cached():
 def statistics():
     st.header("Statistics")
     
-    # dummy_df = pd.DataFrame(
-    #     {
-    #         "key": ["a1", "b1", "c1", "d1", "e1"],
-    #         "unit_price": [100, 200, 300, 400, 500],
-    #         "amount": [10, 20, 30, 40, 50],
-    #     }
-    # )
-    # if "df_value" not in st.session_state:
-    #     st.session_state.df_value = dummy_df
+    dummy_df = pd.DataFrame(
+        {
+            "key": ["a1", "b1", "c1", "d1", "e1"],
+            "unit_price": [100, 100, 100, 100, 100],
+            "amount": [10, 20, 20, 40, 50],
+        }
+    )
+    if "df_value" not in st.session_state:
+        st.session_state.df_value = dummy_df
 
-    # def update_st_editor(old_df, edited_df):
-    #     print(old_df)
-    #     print(edited_df)
-    #     different_rows = (old_df != edited_df).any(axis=1)
-    #     key_different = old_df[different_rows]['key'].values[0]
-    #     for col in edited_df.columns:
-    #         if edited_df[col][different_rows].values[0] != old_df[col][different_rows].values[0]:
-    #             col_different = col
-    #             new_value = edited_df[col][different_rows].values[0]
-    #             break
-    #     print(f"key: {key_different}")
-    #     print(f"{col_different}: {new_value}")
+    def update_st_editor(old_df, edited_df):
+        print(old_df)
+        print(edited_df)
+        different_rows = (old_df != edited_df).any(axis=1)
+        key_different = old_df[different_rows]['key'].values[0]
+        for col in edited_df.columns:
+            if edited_df[col][different_rows].values[0] != old_df[col][different_rows].values[0]:
+                col_different = col
+                new_value = edited_df[col][different_rows].values[0]
+                break
+        print(f"key: {key_different}")
+        print(f"{col_different}: {new_value}")
 
-    # edited_df = st.data_editor(
-    #     dummy_df,
-    #     key="editor",
-    #     num_rows="dynamic",
-    # )
+    edited_df = st.data_editor(
+        dummy_df,
+        key="editor",
+        column_config = {"key": st.column_config.Column(disabled=True, help="Info: Not editable"),
+                         "unit_price": st.column_config.NumberColumn("Unit Price", min_value=0, format="$%d"),
+                         "amount": st.column_config.NumberColumn("Amount", min_value=0),
+                         },
+        num_rows="fixed",
+        hide_index=True,
+    )
 
-    # if edited_df is not None and not edited_df.equals(st.session_state["df_value"]):
-    #     update_st_editor(st.session_state["df_value"], edited_df)
-    #     st.session_state["df_value"] = edited_df
+    if edited_df is not None and not edited_df.equals(st.session_state["df_value"]):
+        update_st_editor(st.session_state["df_value"], edited_df)
+        st.session_state["df_value"] = edited_df
 
-    # st.divider()
-    # st.divider()
+    st.divider()
+    st.divider()
 
 
 

@@ -50,12 +50,12 @@ def get_herb(herb_id):
 # print(get_herb("h13"))
 
 
-def update_herb(herb_id, new_unit_price, new_inventory):
+def update_herb(herb_id, updates):
     """If the item is updated, returns None. Otherwise, an exception is raised"""
-    updates = {
-        "unit_price":new_unit_price,
-        "inventory":new_inventory,
-    }
+    # updates = {
+    #     "unit_price":new_unit_price,
+    #     "inventory":new_inventory,
+    # }
     return inventory_db.update(updates, herb_id)
 
 # print(update_herb("h01", {"inventory":99}))
@@ -107,7 +107,7 @@ def update_income(time, updates):
     # updates = {}
     return income_db.update(updates, time)
 
-# print(update_income("2023-08-16-08:00", {"amount":199}))
+# print(update_income("2023-08-16-08:02:00", {"amount": 195}))
 
 
 def delete_income(time):
