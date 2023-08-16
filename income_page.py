@@ -4,6 +4,8 @@ from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
 import database as db
 
+# feature we want to add: try to use st.data_editor to manage update, delete (on_change)
+
 @st.cache_data
 def fetch_all_incomes_cached():
     return db.fetch_all_incomes()
