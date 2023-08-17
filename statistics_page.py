@@ -2,11 +2,14 @@ import streamlit as st
 import pandas as pd
 import database as db
 import utils
-
+import io
+import base64
+from docx import Document
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+import matplotlib.pyplot as plt
 
 # features we want:
 # - change ALL fetch_all functions to async, for all pages (need?)
-# - export graph as jpg, other data + graph as excel (or maybe word)
 # - test if data length exceeds 1000
 
 @st.cache_data
@@ -34,6 +37,30 @@ def get_income_expense_by_month(df_income_by_month, df_expense_by_month):
     months_list = df_income_expense_by_month['month'].tolist()
     return df_income_expense_by_month, months_list
 
+
+def create_word_report(dataframes):
+    doc = Document()
+    for title, df in dataframes.items():
+        doc.add_heading(title, level=1)
+        
+        # Add table with gridlines
+        table = doc.add_table(rows=df.shape[0] + 1, cols=df.shape[1])
+        table.style = "Table Grid"
+        
+        # Set column headers
+        for j, col_name in enumerate(df.columns):
+            cell = table.cell(0, j)
+            cell.text = col_name
+            cell.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+            
+        # Fill data into the table
+        for i in range(df.shape[0]):
+            for j in range(df.shape[1]):
+                cell = table.cell(i + 1, j)
+                cell.text = str(df.iat[i, j])
+                cell.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+    
+    return doc
 
 
 def statistics():
@@ -138,8 +165,44 @@ def statistics():
         (df_income_expense_by_month['month'] >= start_month) &
         (df_income_expense_by_month['month'] <= end_month)
     ]
-    st.line_chart(df_income_expense_by_month, x="month", use_container_width=True)
+    # st.line_chart(df_income_expense_by_month, x="month", use_container_width=True)
+    plt.figure(figsize=(8, 4))
+    plt.plot(df_income_expense_by_month['month'], df_income_expense_by_month['Income'], marker='o', label='Income')
+    plt.plot(df_income_expense_by_month['month'], df_income_expense_by_month['Expense'], marker='x', label='Expense')
+    plt.title('Income and Expense by Month')
+    plt.xlabel('Month')
+    plt.ylabel('Amount')
+    plt.legend()
+    plt.grid(True)
+    st.pyplot(plt)
 
+    # Export excel file
+    excel_buffer = io.BytesIO()
+    with pd.ExcelWriter(excel_buffer, engine="xlsxwriter") as writer:
+        df_income_by_category.to_excel(writer, sheet_name="Income by Category", index=False)
+        df_expense_by_category.to_excel(writer, sheet_name="Expense by Category", index=False)
+        df_income_expense_by_month.to_excel(writer, sheet_name="Income & Expense Summary", index=False)
+
+    b64 = base64.b64encode(excel_buffer.getvalue()).decode()
+    href = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="statistics.xlsx">Download Excel Report</a>'
+    st.markdown(href, unsafe_allow_html=True)
+
+    # Export word file
+    dataframes = {
+        "Income by Category": df_income_by_category,
+        "Expense by Category": df_expense_by_category,
+        "Income & Expense Summary": df_income_expense_by_month
+    }
+    
+    doc = create_word_report(dataframes)
+    doc_buffer = io.BytesIO()
+    doc.save(doc_buffer)
+    doc_buffer.seek(0)
+    b64 = base64.b64encode(doc_buffer.read()).decode()
+    href = f'<a href="data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64,{b64}" download="statistics.docx">Download Word Report</a>'
+    st.markdown(href, unsafe_allow_html=True)
+
+ 
 
 
 if __name__ == "__main__":
