@@ -33,18 +33,18 @@ def get_income_by_month(income_data):
     df_income = df_income[INCOME_COLUMN_ORDER] # rearrange column order
     df_income['month'] = df_income['key'].apply(utils.format_month) # add a new column "month", by reading the date from "key"
     month_options = df_income['month'].unique() # list of months, e.g. ['2023 May' '2023 Jun' '2023 Jul' '2023 Aug']
-    
-    # st.dataframe(df_income,
-    #                 hide_index=True, 
-    #                 use_container_width=True,
-    #                 column_config={
-    #                 "key": st.column_config.Column("Income ID", disabled=True, help="Info: Not editable"),
-    #                 "category": st.column_config.TextColumn("Category"),
-    #                 "item": st.column_config.TextColumn("Item"),
-    #                 "customer": st.column_config.TextColumn("Customer"),
-    #                 "amount": st.column_config.NumberColumn("Amount", format="$%d"),
-    #                 }
-    #             )
+    # Display for checking only, will hide it
+    st.dataframe(df_income,
+                    hide_index=True, 
+                    use_container_width=True,
+                    column_config={
+                    "key": st.column_config.Column("Income ID", disabled=True, help="Info: Not editable"),
+                    "category": st.column_config.TextColumn("Category"),
+                    "item": st.column_config.TextColumn("Item"),
+                    "customer": st.column_config.TextColumn("Customer"),
+                    "amount": st.column_config.NumberColumn("Amount", format="$%d"),
+                    }
+                )
     df_income_by_month = convert_to_monthly_summary(df_income, month_options)
     df_income_by_month = df_income_by_month.reset_index(drop=True)
     return df_income_by_month
@@ -57,17 +57,17 @@ def get_expense_by_month(expense_data):
     df_expense = df_expense[EXPENSE_COLUMN_ORDER] # rearrange column order
     df_expense['month'] = df_expense['key'].apply(utils.format_month) # add a new column "month", by reading the date from "key"
     month_options = df_expense['month'].unique() # list of months, e.g. ['2023 May' '2023 Jun' '2023 Jul' '2023 Aug']
-    
-    # st.dataframe(df_expense,
-    #                 hide_index=True, 
-    #                 use_container_width=True,
-    #                 column_config={
-    #                 "key": st.column_config.Column("Expense ID", disabled=True, help="Info: Not editable"),
-    #                 "category": st.column_config.TextColumn("Category"),
-    #                 "item": st.column_config.TextColumn("Item"),
-    #                 "amount": st.column_config.NumberColumn("Amount", format="$%d"),
-    #                 }
-    #             )
+    # Display for checking only, will hide it
+    st.dataframe(df_expense,
+                    hide_index=True, 
+                    use_container_width=True,
+                    column_config={
+                    "key": st.column_config.Column("Expense ID", disabled=True, help="Info: Not editable"),
+                    "category": st.column_config.TextColumn("Category"),
+                    "item": st.column_config.TextColumn("Item"),
+                    "amount": st.column_config.NumberColumn("Amount", format="$%d"),
+                    }
+                )
     df_expense_by_month = convert_to_monthly_summary(df_expense, month_options)
     df_expense_by_month = df_expense_by_month.reset_index(drop=True)
     return df_expense_by_month
