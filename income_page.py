@@ -5,11 +5,11 @@ import asyncio
 from datetime import datetime
 import database as db
 import utils
+import time
 
 @st.cache_data
 def fetch_all_incomes_cached():
     return db.fetch_all_incomes()
-
 
 def add_income_item(date, category, item, customer, amount):
     current_time = datetime.now().strftime("%H:%M:%S")
@@ -20,8 +20,9 @@ def add_income_item(date, category, item, customer, amount):
     coro = add_income_item_async(full_datetime, category, item, customer, amount)
     with st.spinner("Adding income data..."):
         asyncio.run(coro)
+    st.success("Success!")
+    time.sleep(1)
     st.experimental_rerun()
-
 
 def remove_income(income_id):
     async def remove_income_async(income_id):
@@ -30,6 +31,8 @@ def remove_income(income_id):
     coro = remove_income_async(income_id)
     with st.spinner("Removing income data..."):
         asyncio.run(coro)
+    st.success("Success!")
+    time.sleep(1)
     st.experimental_rerun()
 
 

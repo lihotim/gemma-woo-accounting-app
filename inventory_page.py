@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import database as db
 import asyncio
+import time
 
 @st.cache_data
 def fetch_all_herbs_cache():
@@ -17,6 +18,8 @@ def add_new_herb(herb_id, brand, herb_name, unit_price, stock):
     coro = add_new_herb_async(herb_id, brand, herb_name, unit_price, stock)
     with st.spinner("Adding herb data..."):
         asyncio.run(coro)
+    st.success("Success!")
+    time.sleep(1)
     st.experimental_rerun()
 
 
@@ -38,6 +41,8 @@ def update_inventory(old_df, edited_df):
     coro = update_herb_async(herb_id, col_changed, new_value)
     with st.spinner("Updating herb data..."):
         asyncio.run(coro)
+    st.success("Success!")
+    time.sleep(1)
     st.experimental_rerun()
 
 
@@ -48,6 +53,8 @@ def remove_herb(herb_id):
     coro = remove_herb_async(herb_id)
     with st.spinner("Removing herb data..."):
         asyncio.run(coro)
+    st.success("Success!")
+    time.sleep(1)
     st.experimental_rerun()
 
 
@@ -59,7 +66,7 @@ def inventory():
     df_inventory = pd.DataFrame(data)
     df_inventory = df_inventory[COLUMN_ORDER]
     herb_id_list = df_inventory['key'].tolist() # list of all herb_id
-    
+
     # Display input fields for adding new inventory entries
     st.header("Add New Herb")
     herb_id = st.text_input("Herb ID")

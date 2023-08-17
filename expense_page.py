@@ -5,7 +5,7 @@ import asyncio
 from datetime import datetime
 import database as db
 import utils
-
+import time
 
 @st.cache_data
 def fetch_all_expenses_cached():
@@ -20,9 +20,10 @@ def add_expense_item(date, category, item, amount):
     coro = add_expense_item_async(full_datetime, category, item, amount)
     with st.spinner("Adding expense data..."):
         asyncio.run(coro)
+    st.success("Success!")
+    time.sleep(1)
     st.experimental_rerun()
     
-
 def remove_expense(expense_id):
     async def remove_expense_async(expense_id):
         db.delete_expense(expense_id)
@@ -30,6 +31,8 @@ def remove_expense(expense_id):
     coro = remove_expense_async(expense_id)
     with st.spinner("Removing expense data..."):
         asyncio.run(coro)
+    st.success("Success!")
+    time.sleep(1)
     st.experimental_rerun()
 
 

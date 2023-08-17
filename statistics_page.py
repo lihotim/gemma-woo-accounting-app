@@ -202,8 +202,6 @@ def statistics():
     href = f'<a href="data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64,{b64}" download="statistics.docx">Download Word Report</a>'
     st.markdown(href, unsafe_allow_html=True)
 
- 
-
 
 if __name__ == "__main__":
     statistics()
