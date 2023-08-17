@@ -58,7 +58,7 @@ def expense():
     selected_month = st.multiselect(
             'Filter by Month',
             options=month_options,
-            default=month_options,
+            default=month_options[-1], # default to choose only the latest month
     )
     selected_categories = st.multiselect(
         'Filter by Category',
