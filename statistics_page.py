@@ -1,15 +1,12 @@
 import streamlit as st
 import pandas as pd
-from datetime import datetime
-import matplotlib.pyplot as plt
 import database as db
+import utils
+
 
 # features we want:
+# - Display bar charts to let use see the trend of each category (e.g. the income from "consultation" has increased, or the expense from "rent" has decreased)
 # - change ALL fetch_all functions to async, for all pages (need?)
-# - display historical incomes and expenses using line charts (1 line for income, 1 line for expense)
-# - can also apply category filter
-
-# - may display metrics: compare income & expense this month and last month, then show delta (%)
 # - export graph as jpg, other data + graph as excel (or maybe word)
 # - 
 
@@ -21,73 +18,120 @@ def fetch_all_expenses_cached():
     return db.fetch_all_expenses()
 
 
+def convert_to_monthly_summary(df, month_options):
+    summary_df = df.groupby('month', as_index=False)['amount'].sum()
+    summary_df['month'] = pd.Categorical(summary_df['month'], categories=month_options, ordered=True)
+    summary_df = summary_df.sort_values('month')
+    return summary_df[['month', 'amount']] 
+
+
+@st.cache_data
+def get_income_by_month(income_data):
+     # CATEGORIES = ["Consultation", "Herb sale", "Class", "Others"]
+    INCOME_COLUMN_ORDER = ["key", "category", "item", "customer", "amount"]
+    df_income = pd.DataFrame(income_data)
+    df_income = df_income[INCOME_COLUMN_ORDER] # rearrange column order
+    df_income['month'] = df_income['key'].apply(utils.format_month) # add a new column "month", by reading the date from "key"
+    month_options = df_income['month'].unique() # list of months, e.g. ['2023 May' '2023 Jun' '2023 Jul' '2023 Aug']
+    
+    # st.dataframe(df_income,
+    #                 hide_index=True, 
+    #                 use_container_width=True,
+    #                 column_config={
+    #                 "key": st.column_config.Column("Income ID", disabled=True, help="Info: Not editable"),
+    #                 "category": st.column_config.TextColumn("Category"),
+    #                 "item": st.column_config.TextColumn("Item"),
+    #                 "customer": st.column_config.TextColumn("Customer"),
+    #                 "amount": st.column_config.NumberColumn("Amount", format="$%d"),
+    #                 }
+    #             )
+    df_income_by_month = convert_to_monthly_summary(df_income, month_options)
+    df_income_by_month = df_income_by_month.reset_index(drop=True)
+    return df_income_by_month
+
+@st.cache_data
+def get_expense_by_month(expense_data):
+    # CATEGORIES = ["Rent", "Salaries", "Supplies", "Utilities", "Advertising", "Travel", "Others"]
+    EXPENSE_COLUMN_ORDER = ["key", "category", "item", "amount"]
+    df_expense = pd.DataFrame(expense_data)
+    df_expense = df_expense[EXPENSE_COLUMN_ORDER] # rearrange column order
+    df_expense['month'] = df_expense['key'].apply(utils.format_month) # add a new column "month", by reading the date from "key"
+    month_options = df_expense['month'].unique() # list of months, e.g. ['2023 May' '2023 Jun' '2023 Jul' '2023 Aug']
+    
+    # st.dataframe(df_expense,
+    #                 hide_index=True, 
+    #                 use_container_width=True,
+    #                 column_config={
+    #                 "key": st.column_config.Column("Expense ID", disabled=True, help="Info: Not editable"),
+    #                 "category": st.column_config.TextColumn("Category"),
+    #                 "item": st.column_config.TextColumn("Item"),
+    #                 "amount": st.column_config.NumberColumn("Amount", format="$%d"),
+    #                 }
+    #             )
+    df_expense_by_month = convert_to_monthly_summary(df_expense, month_options)
+    df_expense_by_month = df_expense_by_month.reset_index(drop=True)
+    return df_expense_by_month
+
+
+@st.cache_data
+def get_income_expense_by_month(df_income_by_month, df_expense_by_month):
+    df_income_expense_by_month = pd.merge(df_income_by_month, df_expense_by_month, on='month', how='outer')
+    df_income_expense_by_month = df_income_expense_by_month.rename(columns={
+        'amount_x': 'Income',
+        'amount_y': 'Expense'
+    })
+    months_list = df_income_expense_by_month['month'].tolist()
+    return df_income_expense_by_month, months_list
+
+
+
 def statistics():
     st.header("Statistics")
+    st.write(f'(We want to look at the trend of income and expense from each category here)')
     
-   
-
-# --------------------
-
     income_data = fetch_all_incomes_cached()
-    df_income = pd.DataFrame(income_data)
-    
     expense_data = fetch_all_expenses_cached()
-    df_expense = pd.DataFrame(expense_data)
 
-    # Display incomes and expenses by category in pie charts
+
     col1, col2 = st.columns(2)
     with col1:
-        st.subheader("Incomes")
-        # st.dataframe(df_income)
-
-        income_by_category = df_income.groupby("category")["amount"].sum()
-        fig, ax = plt.subplots(figsize=(8, 6))
-        wedges, texts, autotexts = ax.pie(
-            income_by_category,
-            labels=[f"{label} (${value:.2f})" for label, value in income_by_category.items()],
-            autopct="%1.1f%%",
-        )
-        ax.set_title("Incomes by Category")
-        plt.setp(autotexts, size=10, weight="bold")
-        st.pyplot(fig)
+        df_income_by_month = get_income_by_month(income_data)
 
     with col2:
-        st.subheader("Expenses")
-        # st.dataframe(df_expense)
+        df_expense_by_month = get_expense_by_month(expense_data)
 
-        expense_by_category = df_expense.groupby("category")["amount"].sum()
-        fig, ax = plt.subplots(figsize=(8, 6))
-        wedges, texts, autotexts = ax.pie(
-            expense_by_category,
-            labels=[f"{label} (${value:.2f})" for label, value in expense_by_category.items()],
-            autopct="%1.1f%%",
-        )
-        ax.set_title("Expenses by Category")
-        plt.setp(autotexts, size=10, weight="bold")
-        st.pyplot(fig)
 
-        
-    # Display incomes and expenses by category in tables
-    col1, col2 = st.columns(2)
-    with col1:
-        income_table = pd.DataFrame(income_by_category).reset_index()
-        income_table.columns = ["Category", "Amount"]
-        income_table = income_table.sort_values(by="Amount", ascending=False)
-        st.dataframe(income_table, hide_index=True, use_container_width=True)
-    with col2:
-        expense_table = pd.DataFrame(expense_by_category).reset_index()
-        expense_table.columns = ["Category", "Amount"]
-        expense_table = expense_table.sort_values(by="Amount", ascending=False)
-        st.dataframe(expense_table, hide_index=True, use_container_width=True)
+    st.header("Total Income and Expense Summary")
+    df_income_expense_by_month, months_list = get_income_expense_by_month(df_income_by_month, df_expense_by_month)
+    st.dataframe(df_income_expense_by_month,
+                    hide_index=True,
+                    use_container_width=True,
+                    column_config={
+                    "month": st.column_config.TextColumn("Month"),
+                    "Income": st.column_config.NumberColumn("Total Income", format="$%d"),
+                    "Expense": st.column_config.NumberColumn("Total Expense", format="$%d"),
+                    }
+                )
+    start_month, end_month = st.select_slider(
+        'Select a time range:',
+        options=months_list,
+        value=(months_list[0], months_list[-1]) 
+    )
+
+    df_income_expense_by_month = df_income_expense_by_month[
+        (df_income_expense_by_month['month'] >= start_month) &
+        (df_income_expense_by_month['month'] <= end_month)
+    ]
+    st.line_chart(df_income_expense_by_month, x="month", use_container_width=True)
 
 
     # Metrics
-    col1, col2, col3 = st.columns(3)
-    total_income = income_by_category.sum()
-    total_expense = expense_by_category.sum()
-    col1.metric(label = "Total Income", value = f"{total_income:.2f}")
-    col2.metric(label = "Total Expense", value = f"{total_expense:.2f}")
-    col3.metric(label = "???", value = f"{0.00}")
+    # col1, col2, col3 = st.columns(3)
+    # total_income = income_by_category.sum()
+    # total_expense = expense_by_category.sum()
+    # col1.metric(label = "Total Income", value = f"{total_income:.2f}")
+    # col2.metric(label = "Total Expense", value = f"{total_expense:.2f}")
+    # col3.metric(label = "???", value = f"{0.00}")
 
 
 if __name__ == "__main__":

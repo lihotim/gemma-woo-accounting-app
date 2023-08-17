@@ -36,7 +36,7 @@ def remove_expense(expense_id):
 def expense():
     # Add expense form
     st.header("Add Expense")
-    CATEGORIES = ["Rent", "Salaries", "Supplies", "Utilities", "Advertising", "Travel", "Other"]
+    CATEGORIES = ["Rent", "Salaries", "Supplies", "Utilities", "Advertising", "Travel", "Others"]
     COLUMN_ORDER = ["key", "category", "item", "amount"]
     date = st.date_input("Date")
     category = st.selectbox("Category", CATEGORIES)
@@ -126,7 +126,7 @@ def expense():
         selected_month_str = ", ".join(selected_month)
         st.subheader("Total Expense")
         st.write(f"Period: {selected_month_str}")
-        st.metric(label=f"Period: {selected_month_str}", value=f"${total_expense:.2f}")
+        st.metric(label="HKD", value=f"${total_expense:.2f}")
 
         expense_table = pd.DataFrame(expense_by_category)
         expense_table = expense_table.sort_values(by="amount", ascending=False)
