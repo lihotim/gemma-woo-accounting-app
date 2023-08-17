@@ -12,6 +12,16 @@ from statistics_page import statistics
 
 TAB_OPTIONS = ["Inventory", "Income", "Expense", "Statistics"]
     
+# --- PATH SETTINGS ---
+THIS_DIR = Path(__file__).parent if "__file__" in locals() else Path.cwd()
+ASSETS_DIR = THIS_DIR / "assets"
+STYLES_DIR = THIS_DIR / "styles"
+CSS_FILE = STYLES_DIR / "main.css"
+
+def load_css_file(css_file_path):
+    with open(css_file_path) as f:
+        return st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
 # --- PAGE CONFIG ---
 st.set_page_config(
     page_title="Gemma Woo's Accounting App",
@@ -19,6 +29,7 @@ st.set_page_config(
     layout="centered",
     initial_sidebar_state="collapsed",
 )
+load_css_file(CSS_FILE)
 
 def streamlit_menu():
     # 2. horizontal menu w/o custom style

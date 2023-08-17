@@ -26,7 +26,6 @@ def convert_to_monthly_summary(df, month_options):
     return summary_df[['month', 'amount']] 
 
 
-
 @st.cache_data
 def get_income_expense_by_month(df_income_by_month, df_expense_by_month):
     df_income_expense_by_month = pd.merge(df_income_by_month, df_expense_by_month, on='month', how='outer')
@@ -42,26 +41,22 @@ def create_word_report(dataframes):
     doc = Document()
     for title, df in dataframes.items():
         doc.add_heading(title, level=1)
-        
         # Add table with gridlines
         table = doc.add_table(rows=df.shape[0] + 1, cols=df.shape[1])
         table.style = "Table Grid"
-        
         # Set column headers
         for j, col_name in enumerate(df.columns):
             cell = table.cell(0, j)
             cell.text = col_name
             cell.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
-            
         # Fill data into the table
         for i in range(df.shape[0]):
             for j in range(df.shape[1]):
                 cell = table.cell(i + 1, j)
                 cell.text = str(df.iat[i, j])
                 cell.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
-    
     return doc
-
+    
 
 def statistics():
     st.header("Statistics")
@@ -144,6 +139,7 @@ def statistics():
     df_expense_by_month = convert_to_monthly_summary(df_expense, month_options)
     df_expense_by_month = df_expense_by_month.reset_index(drop=True)
     df_income_expense_by_month, months_list = get_income_expense_by_month(df_income_by_month, df_expense_by_month)
+    df_income_expense_by_month["Net Income"] = df_income_expense_by_month["Income"] - df_income_expense_by_month["Expense"]
     st.dataframe(df_income_expense_by_month,
                     hide_index=True,
                     use_container_width=True,
@@ -151,6 +147,7 @@ def statistics():
                     "month": st.column_config.TextColumn("Month"),
                     "Income": st.column_config.NumberColumn("Total Income", format="$%d"),
                     "Expense": st.column_config.NumberColumn("Total Expense", format="$%d"),
+                    "Net Income": st.column_config.NumberColumn("Net Income", format="$%d"),
                     }
                 )
     
@@ -167,8 +164,9 @@ def statistics():
     ]
     # st.line_chart(df_income_expense_by_month, x="month", use_container_width=True)
     plt.figure(figsize=(8, 4))
-    plt.plot(df_income_expense_by_month['month'], df_income_expense_by_month['Income'], marker='o', label='Income')
-    plt.plot(df_income_expense_by_month['month'], df_income_expense_by_month['Expense'], marker='x', label='Expense')
+    plt.plot(df_income_expense_by_month['month'], df_income_expense_by_month['Income'], marker='^', label='Income')
+    plt.plot(df_income_expense_by_month['month'], df_income_expense_by_month['Expense'], marker='v', label='Expense')
+    plt.plot(df_income_expense_by_month['month'], df_income_expense_by_month['Net Income'], marker='o', label='Net Income')
     plt.title('Income and Expense by Month')
     plt.xlabel('Month')
     plt.ylabel('Amount')
@@ -176,6 +174,8 @@ def statistics():
     plt.grid(True)
     st.pyplot(plt)
 
+
+    st.divider()
     # Export excel file
     excel_buffer = io.BytesIO()
     with pd.ExcelWriter(excel_buffer, engine="xlsxwriter") as writer:
@@ -184,7 +184,7 @@ def statistics():
         df_income_expense_by_month.to_excel(writer, sheet_name="Income & Expense Summary", index=False)
 
     b64 = base64.b64encode(excel_buffer.getvalue()).decode()
-    href = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="statistics.xlsx">Download Excel Report</a>'
+    href = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="statistics.xlsx" class="button">Download Excel Report</a>'
     st.markdown(href, unsafe_allow_html=True)
 
     # Export word file
@@ -199,7 +199,7 @@ def statistics():
     doc.save(doc_buffer)
     doc_buffer.seek(0)
     b64 = base64.b64encode(doc_buffer.read()).decode()
-    href = f'<a href="data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64,{b64}" download="statistics.docx">Download Word Report</a>'
+    href = f'<a href="data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64,{b64}" download="statistics.docx" class="button">Download Word Report</a>'
     st.markdown(href, unsafe_allow_html=True)
 
 
