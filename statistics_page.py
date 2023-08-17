@@ -8,9 +8,6 @@ from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 import matplotlib.pyplot as plt
 
-# features we want:
-# - change ALL fetch_all functions to async, for all pages (need?)
-# - test if data length exceeds 1000
 
 @st.cache_data
 def fetch_all_incomes_cached():

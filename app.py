@@ -9,6 +9,10 @@ from expense_page import expense
 from statistics_page import statistics
 
 # features we want:
+# - fix ALL the titles, headers, labels, copywritings
+# - change ALL fetch_all functions to async, for all pages (need?)
+# - test if data length exceeds 1000
+
 
 TAB_OPTIONS = ["Inventory", "Income", "Expense", "Statistics"]
     
