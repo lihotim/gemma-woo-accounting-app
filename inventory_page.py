@@ -58,7 +58,8 @@ def inventory():
     data = fetch_all_herbs_cache()
     df_inventory = pd.DataFrame(data)
     df_inventory = df_inventory[COLUMN_ORDER]
-
+    herb_id_list = df_inventory['key'].tolist() # list of all herb_id
+    
     # Display input fields for adding new inventory entries
     st.header("Add New Herb")
     herb_id = st.text_input("Herb ID")
@@ -68,7 +69,13 @@ def inventory():
     stock = st.number_input("Stock", step=1)
 
     if st.button("Add New Herb"):
-        add_new_herb(herb_id, brand, herb_name, unit_price, stock)
+        if any(field == "" for field in [herb_id, brand, herb_name, unit_price, stock]):
+            st.warning("Please fill in all the required fields.")
+        elif herb_id in herb_id_list:
+            st.warning("Herb ID already exists. Please choose a different one.")
+        else:
+            add_new_herb(herb_id, brand, herb_name, unit_price, stock)
+
 
         
     # Display the current inventory table (using st.data_editor)

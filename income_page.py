@@ -44,7 +44,10 @@ def income():
     customer = st.text_input("Customer name")
     amount = st.number_input("Amount", step=1, min_value=0)
     if st.button("Add New Income Item"):
-        add_income_item(date, category, item, customer, amount)
+        if any(field == "" for field in [date, category, item, customer, amount]):
+            st.warning("Please fill in all the required fields.")
+        else:
+            add_income_item(date, category, item, customer, amount)
 
 
     # Filter by month and category

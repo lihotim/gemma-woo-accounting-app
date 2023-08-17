@@ -43,8 +43,10 @@ def expense():
     item = st.text_input("Item")
     amount = st.number_input("Amount", step=1, min_value=0)
     if st.button("Add New Expense Item"):
-        add_expense_item(date, category, item, amount)
-
+        if any(field == "" for field in [date, category, item, amount]):
+            st.warning("Please fill in all the required fields.")
+        else:
+            add_expense_item(date, category, item, amount)
 
 
      # Filter by month and category
