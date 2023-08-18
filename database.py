@@ -32,13 +32,14 @@ def insert_herb(herb_id, brand, herb_name, unit_price, inventory):
         }
     )
 
-
+# Insert 1 herb manually
 # print(insert_herb("h1001", "Hoi Tin", "herb-1001", 300, 3))
 
+# Insert many herbs
 # brand_list = ["Sam Gau", "Hoi Tin", "Others"]
-# for id in range(1002, 1101):
+# for id in range(1, 21): # loop from 1 to 20
 #     brand = random.choice(brand_list)
-#     result = insert_herb(f"h{id}", brand, f"herb-{id}", 300, 3)
+#     result = insert_herb(f"h{id}", brand, f"herb-{id}", 100, 10)
 #     print(result)
 
 
@@ -48,7 +49,8 @@ def fetch_all_herbs():
     all_herbs = []
     last_item_key = None
     while True:
-        response = inventory_db.fetch(limit=1000, last=last_item_key)
+        response = inventory_db.fetch(limit=100, last=last_item_key)
+        print(len(response.items))
         all_herbs.extend(response.items)
         if not response.last:
             break
@@ -108,7 +110,7 @@ def fetch_all_incomes():
     all_incomes = []
     last_item_key = None
     while True:
-        response = income_db.fetch(limit=1000, last=last_item_key)
+        response = income_db.fetch(limit=100, last=last_item_key)
         all_incomes.extend(response.items)
         if not response.last:
             break
@@ -162,7 +164,7 @@ def fetch_all_expenses():
     all_expenses = []
     last_item_key = None
     while True:
-        response = expense_db.fetch(limit=1000, last=last_item_key)
+        response = expense_db.fetch(limit=100, last=last_item_key)
         all_expenses.extend(response.items)
         if not response.last:
             break
