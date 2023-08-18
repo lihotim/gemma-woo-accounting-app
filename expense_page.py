@@ -114,9 +114,6 @@ def expense():
                 st.warning("Please select an expense id to delete.")
 
 
-
-
-
     # Show pie chart and table in 2 columns
     col1, col2 = st.columns([2,1])
     with col1:
