@@ -11,7 +11,8 @@ import columns_categories_config as ccconfig
 
 @st.cache_data
 def fetch_all_expenses_cached():
-    return db.fetch_all_expenses()
+    data = db.fetch_all_expenses()
+    return data
 
 def add_expense_item(date, category, item, amount):
     current_time = datetime.now().strftime("%H:%M:%S")
@@ -57,8 +58,7 @@ def expense():
 
     st.divider()
     expense_data = fetch_all_expenses_cached()
-    df_expense = pd.DataFrame(expense_data)
-    df_expense = df_expense[COLUMN_ORDER] # rearrange column order
+    df_expense = pd.DataFrame(expense_data, columns=COLUMN_ORDER) # initialize dataframe with the expected column order
     df_expense['month'] = df_expense['key'].apply(utils.format_month) # add a new column "month", by reading the date from "key"
     month_options = df_expense['month'].unique() # list of months, e.g. ['2023 May' '2023 Jun' '2023 Jul' '2023 Aug']
     
@@ -72,7 +72,7 @@ def expense():
         selected_month = st.multiselect(
                 'Filter by Month',
                 options=month_options,
-                default=month_options[-1], # default to choose only the latest month
+                default=month_options[-1] if len(month_options) > 0 else month_options, # default to choose only the latest month
         )
         selected_categories = st.multiselect(
             'Filter by Category',

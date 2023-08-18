@@ -64,9 +64,8 @@ def remove_herb(herb_id):
 def inventory():
     BRANDS = ccconfig.HERB_BRANDS # ["Sam Gau", "Hoi Tin", "Others"]
     COLUMN_ORDER = ccconfig.INVENTORY_COLUMN_ORDER # ["key", "brand", "herb_name", "unit_price", "inventory"]
-    data = fetch_all_herbs_cache()
-    df_inventory = pd.DataFrame(data)
-    df_inventory = df_inventory[COLUMN_ORDER] #  rearrange column order
+    inventory_data = fetch_all_herbs_cache()
+    df_inventory = pd.DataFrame(inventory_data, columns=COLUMN_ORDER) # initialize dataframe with the expected column order
     herb_id_list = df_inventory['key'].tolist() # list of all herb_id
 
     # Display input fields for adding new inventory entries

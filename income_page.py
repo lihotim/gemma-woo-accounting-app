@@ -11,7 +11,8 @@ import columns_categories_config as ccconfig
 
 @st.cache_data
 def fetch_all_incomes_cached():
-    return db.fetch_all_incomes()
+    data = db.fetch_all_incomes()
+    return data
 
 def add_income_item(date, category, item, customer, amount):
     current_time = datetime.now().strftime("%H:%M:%S")
@@ -57,8 +58,7 @@ def income():
 
     st.divider()
     income_data = fetch_all_incomes_cached()
-    df_income = pd.DataFrame(income_data)
-    df_income = df_income[COLUMN_ORDER] # rearrange column order
+    df_income = pd.DataFrame(income_data, columns=COLUMN_ORDER) # initialize dataframe with the expected column order
     df_income['month'] = df_income['key'].apply(utils.format_month) # add a new column "month", by reading the date from "key"
     month_options = df_income['month'].unique() # list of months, e.g. ['2023 May' '2023 Jun' '2023 Jul' '2023 Aug']
 
@@ -72,7 +72,7 @@ def income():
         selected_month = st.multiselect(
             'Filter by Month',
             options=month_options,
-            default=month_options[-1], # default to choose only the latest month
+            default=month_options[-1] if len(month_options) > 0 else month_options, # default to choose only the latest month
         )
         selected_categories = st.multiselect(
             'Filter by Category',
