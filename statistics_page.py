@@ -254,7 +254,8 @@ def statistics():
         st.markdown(href, unsafe_allow_html=True)
 
     else:
-        st.warning("Oops! It looks like either income or expense data is missing. To view the Total Income and Expense Summary, please make sure to import the necessary data.")
+        st.subheader("Total Income and Expense Summary")
+        st.warning("Oops! It looks like either income or expense data is missing. To view the Total Income and Expense Summary and their trends, please make sure to import the necessary data.")
 
 
 if __name__ == "__main__":
