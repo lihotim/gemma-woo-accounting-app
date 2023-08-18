@@ -115,6 +115,7 @@ def expense():
 
 
     # Show pie chart and table in 2 columns
+    st.divider()
     col1, col2 = st.columns([2,1])
     with col1:
         st.subheader("Expense Distribution")
