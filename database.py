@@ -1,4 +1,5 @@
 import os
+import random
 
 from deta import Deta  # pip install deta
 from dotenv import load_dotenv  # pip install python-dotenv
@@ -32,15 +33,30 @@ def insert_herb(herb_id, brand, herb_name, unit_price, inventory):
     )
 
 
-# print(insert_herb("herb03", "HoiTin", "Hoi Tin A", 300, 3))
+# print(insert_herb("h1001", "Hoi Tin", "herb-1001", 300, 3))
+
+# brand_list = ["Sam Gau", "Hoi Tin", "Others"]
+# for id in range(1002, 1101):
+#     brand = random.choice(brand_list)
+#     result = insert_herb(f"h{id}", brand, f"herb-{id}", 300, 3)
+#     print(result)
+
 
 
 def fetch_all_herbs():
-    """Returns a dict of all users"""
-    res = inventory_db.fetch()
-    return res.items
+    """Returns a dict of all herbs"""
+    all_herbs = []
+    last_item_key = None
+    while True:
+        response = inventory_db.fetch(limit=1000, last=last_item_key)
+        all_herbs.extend(response.items)
+        if not response.last:
+            break
+        last_item_key = response.last
+    return all_herbs
 
 # print(fetch_all_herbs())
+
 
 
 def get_herb(herb_id):
@@ -89,8 +105,15 @@ def insert_income(time, category, item, customer, amount):
 
 def fetch_all_incomes():
     """Returns a dict of all incomes"""
-    res = income_db.fetch()
-    return res.items
+    all_incomes = []
+    last_item_key = None
+    while True:
+        response = income_db.fetch(limit=1000, last=last_item_key)
+        all_incomes.extend(response.items)
+        if not response.last:
+            break
+        last_item_key = response.last
+    return all_incomes
 
 # print(fetch_all_incomes())
 
@@ -136,8 +159,15 @@ def insert_expense(time, category, item, amount):
 
 def fetch_all_expenses():
     """Returns a dict of all expenses"""
-    res = expense_db.fetch()
-    return res.items
+    all_expenses = []
+    last_item_key = None
+    while True:
+        response = expense_db.fetch(limit=1000, last=last_item_key)
+        all_expenses.extend(response.items)
+        if not response.last:
+            break
+        last_item_key = response.last
+    return all_expenses
 
 # print(fetch_all_expenses())
 

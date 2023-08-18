@@ -99,6 +99,7 @@ def statistics():
     st.subheader("Income by category")
     st.dataframe(df_income_by_category, 
                     hide_index=True,
+                    use_container_width=True,
                     column_config={"month": st.column_config.TextColumn("Month")}
                 )
 
@@ -132,6 +133,7 @@ def statistics():
     st.subheader("Expense by category")
     st.dataframe(df_expense_by_category,
                     hide_index=True,
+                    use_container_width=True,
                     column_config={"month": st.column_config.TextColumn("Month")},
                 )
 
@@ -147,7 +149,7 @@ def statistics():
         df_income_expense_by_month["Net Income"] = df_income_expense_by_month["Income"] - df_income_expense_by_month["Expense"]
         st.dataframe(df_income_expense_by_month,
                         hide_index=True,
-                        use_container_width=False,
+                        use_container_width=True,
                         column_config={
                         "month": st.column_config.TextColumn("Month"),
                         "Income": st.column_config.NumberColumn("Total Income", format="$%d"),
