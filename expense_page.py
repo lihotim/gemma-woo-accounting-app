@@ -3,9 +3,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import asyncio
 from datetime import datetime
-import database as db
 import utils
 import time
+
+import database as db
+import columns_categories_config as ccconfig
 
 @st.cache_data
 def fetch_all_expenses_cached():
@@ -39,8 +41,8 @@ def remove_expense(expense_id):
 def expense():
     # Add expense form
     st.header("Add Expense")
-    CATEGORIES = ["Rent", "Salaries", "Utilities", "Advertising", "Travel", "Others"]
-    COLUMN_ORDER = ["key", "category", "item", "amount"]
+    CATEGORIES = ccconfig.EXPENSE_CATEGORIES # ["Rent", "Salaries", "Utilities", "Advertising", "Travel", "Others"]
+    COLUMN_ORDER = ccconfig.EXPENSE_COLUMN_ORDER # ["key", "category", "item", "amount"] 
     date = st.date_input("Date")
     category = st.selectbox("Category", CATEGORIES)
     item = st.text_input("Item")

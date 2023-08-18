@@ -1,13 +1,14 @@
 import streamlit as st
 import pandas as pd
-import database as db
 import utils
+import matplotlib.pyplot as plt
 import io
 import base64
 from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
-import matplotlib.pyplot as plt
 
+import database as db
+import columns_categories_config as ccconfig
 
 @st.cache_data
 def fetch_all_incomes_cached():
@@ -64,14 +65,12 @@ def statistics():
 
     col1, col2 = st.columns(2)
     with col1:
-        # df_income_by_month = get_income_by_month(income_data)
-        INCOME_CATEGORIES = ["Consultation", "Herb sale", "Class", "Others"]
-        INCOME_COLUMN_ORDER = ["key", "category", "item", "customer", "amount"]
+        INCOME_CATEGORIES = ccconfig.INCOME_CATEGORIES # ["Consultation", "Herb sale", "Class", "Others"]
+        INCOME_COLUMN_ORDER = ccconfig.INCOME_COLUMN_ORDER # ["key", "category", "item", "customer", "amount"]
         df_income = pd.DataFrame(income_data)
         df_income = df_income[INCOME_COLUMN_ORDER] # rearrange column order
         df_income['month'] = df_income['key'].apply(utils.format_month) # add a new column "month", by reading the date from "key"
         month_options = df_income['month'].unique() # list of months, e.g. ['2023 May' '2023 Jun' '2023 Jul' '2023 Aug']
-        # print(month_options)
         # Display for checking only, will hide it
         # st.dataframe(df_income,
         #                 hide_index=True, 
@@ -84,7 +83,6 @@ def statistics():
         #                 "amount": st.column_config.NumberColumn("Amount", format="$%d"),
         #                 }
         #             )
-        # print(df_income)
 
     df_income_by_category = df_income.pivot_table(index='month', columns='category', values='amount', aggfunc='sum', fill_value=0)
     df_income_by_category.reset_index(inplace=True)
@@ -95,13 +93,11 @@ def statistics():
                     hide_index=True,
                     column_config={"month": st.column_config.TextColumn("Month")}
                 )
-    # print(df_income_by_category)
 
 
     with col2:
-        # df_expense_by_month = get_expense_by_month(expense_data)
-        EXPENSE_CATEGORIES = ["Rent", "Salaries", "Utilities", "Advertising", "Travel", "Others"]
-        EXPENSE_COLUMN_ORDER = ["key", "category", "item", "amount"]
+        EXPENSE_CATEGORIES = ccconfig.EXPENSE_CATEGORIES # ["Rent", "Salaries", "Utilities", "Advertising", "Travel", "Others"]
+        EXPENSE_COLUMN_ORDER = ccconfig.EXPENSE_COLUMN_ORDER # ["key", "category", "item", "amount"]
         df_expense = pd.DataFrame(expense_data)
         df_expense = df_expense[EXPENSE_COLUMN_ORDER] # rearrange column order
         df_expense['month'] = df_expense['key'].apply(utils.format_month) # add a new column "month", by reading the date from "key"
@@ -117,7 +113,6 @@ def statistics():
         #                 "amount": st.column_config.NumberColumn("Amount", format="$%d"),
         #                 }
         #             )
-        # print(df_expense)
     df_expense_by_category = df_expense.pivot_table(index='month', columns='category', values='amount', aggfunc='sum', fill_value=0)
     df_expense_by_category.reset_index(inplace=True)
     df_expense_by_category = df_expense_by_category.set_index('month').reindex(month_options).reset_index()
@@ -127,6 +122,7 @@ def statistics():
                     hide_index=True,
                     column_config={"month": st.column_config.TextColumn("Month")},
                 )
+
 
 
     st.subheader("Total Income and Expense Summary")
@@ -147,6 +143,7 @@ def statistics():
                     }
                 )
     
+
 
     st.divider()
     st.subheader("Trend in Total Income and Expense")

@@ -13,7 +13,6 @@ from statistics_page import statistics
 # - change ALL fetch_all functions to async, for all pages (need?)
 # - test if data length exceeds 1000
 
-
 TAB_OPTIONS = ["Inventory", "Income", "Expense", "Statistics"]
     
 # --- PATH SETTINGS ---
@@ -35,6 +34,7 @@ st.set_page_config(
 )
 load_css_file(CSS_FILE)
 
+
 def streamlit_menu():
     # 2. horizontal menu w/o custom style
     selected = option_menu(
@@ -50,14 +50,10 @@ def streamlit_menu():
 selected = streamlit_menu()
 
 if selected == TAB_OPTIONS[0]:
-    # st.title(f"{selected}")
     inventory()
 if selected == TAB_OPTIONS[1]:
-    # st.title(f"{selected}")
     income()
 if selected == TAB_OPTIONS[2]:
-    # st.title(f"{selected}")
     expense()
 if selected == TAB_OPTIONS[3]:
-    # st.title(f"{selected}")
     statistics()

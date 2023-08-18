@@ -1,8 +1,10 @@
 import streamlit as st
 import pandas as pd
-import database as db
 import asyncio
 import time
+
+import database as db
+import columns_categories_config as ccconfig
 
 @st.cache_data
 def fetch_all_herbs_cache():
@@ -60,11 +62,11 @@ def remove_herb(herb_id):
 
 
 def inventory():
-    COLUMN_ORDER = ["key", "brand", "herb_name", "unit_price", "inventory"]
-    BRANDS = ["Sam Gau", "Hoi Tin", "Others"]
+    BRANDS = ccconfig.HERB_BRANDS # ["Sam Gau", "Hoi Tin", "Others"]
+    COLUMN_ORDER = ccconfig.INVENTORY_COLUMN_ORDER # ["key", "brand", "herb_name", "unit_price", "inventory"]
     data = fetch_all_herbs_cache()
     df_inventory = pd.DataFrame(data)
-    df_inventory = df_inventory[COLUMN_ORDER]
+    df_inventory = df_inventory[COLUMN_ORDER] #  rearrange column order
     herb_id_list = df_inventory['key'].tolist() # list of all herb_id
 
     # Display input fields for adding new inventory entries
