@@ -109,7 +109,7 @@ def inventory():
             hide_index=True,
             column_config = {
                 "key": st.column_config.Column("Herb ID", disabled=True, help="Info: Not editable"),
-                "brand": st.column_config.TextColumn("Brand"),
+                "brand": st.column_config.TextColumn("Brand", disabled=True, help="Info: Not editable"),
                 "herb_name": st.column_config.TextColumn("Herb Name"),
                 "unit_price": st.column_config.NumberColumn("Unit Price", min_value=0, format="$%d"),
                 "inventory": st.column_config.NumberColumn("Inventory", min_value=0, step=1),
