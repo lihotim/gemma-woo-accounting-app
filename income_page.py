@@ -39,7 +39,7 @@ def remove_income(income_id):
 def income():
     # Add income form
     st.header("Add Income")
-    CATEGORIES = ["Consultation", "Herb sale", "Class", "Others"]
+    CATEGORIES = ["Consultation", "Herb Sale", "Class", "Others"]
     COLUMN_ORDER = ["key", "category", "item", "customer", "amount"]
     date = st.date_input("Date")
     category = st.selectbox("Category", CATEGORIES)
@@ -112,6 +112,9 @@ def income():
                 st.warning("Please select an income id to delete.")
 
 
+    consultation_count = filtered_df_income[filtered_df_income['category'] == 'Consultation'].shape[0]
+    herb_sale_count = filtered_df_income[filtered_df_income['category'] == 'Herb Sale'].shape[0]
+
     # Show pie chart and table in 2 columns
     col1, col2 = st.columns([2,1])
     with col1:
@@ -145,6 +148,8 @@ def income():
                 }
         )
         st.metric(label="HKD", value=f"${total_income:.2f}")
+        st.metric(label="Consultation Count", value=consultation_count)  
+        st.metric(label="Herb Sale Count", value=herb_sale_count) 
 
 
 if __name__ == "__main__":
