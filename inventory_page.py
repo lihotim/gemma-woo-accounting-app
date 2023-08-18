@@ -18,7 +18,7 @@ def add_new_herb(herb_id, brand, herb_name, unit_price, stock):
     coro = add_new_herb_async(herb_id, brand, herb_name, unit_price, stock)
     with st.spinner("Adding herb data..."):
         asyncio.run(coro)
-    st.success("Success!")
+    st.success("Success! Now refresh page...")
     time.sleep(1)
     st.experimental_rerun()
 
@@ -41,7 +41,7 @@ def update_inventory(old_df, edited_df):
     coro = update_herb_async(herb_id, col_changed, new_value)
     with st.spinner("Updating herb data..."):
         asyncio.run(coro)
-    st.success("Success!")
+    st.success("Success! Now refresh page...")
     time.sleep(1)
     st.experimental_rerun()
 
@@ -53,7 +53,7 @@ def remove_herb(herb_id):
     coro = remove_herb_async(herb_id)
     with st.spinner("Removing herb data..."):
         asyncio.run(coro)
-    st.success("Success!")
+    st.success("Success! Now refresh page...")
     time.sleep(1)
     st.experimental_rerun()
 
@@ -92,6 +92,14 @@ def inventory():
     col1, col2 = st.columns([2,1])
     with col1:
         st.subheader("Edit Herbs:")
+        selected_brand = st.multiselect(
+        'Filter by Brand',
+        options=BRANDS,
+        default=BRANDS,
+        )
+        df_inventory = df_inventory[
+            (df_inventory['brand'].isin(selected_brand))
+        ]
         edited_df_inventory = st.data_editor(
             df_inventory, 
             use_container_width=True,

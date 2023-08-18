@@ -20,7 +20,7 @@ def add_income_item(date, category, item, customer, amount):
     coro = add_income_item_async(full_datetime, category, item, customer, amount)
     with st.spinner("Adding income data..."):
         asyncio.run(coro)
-    st.success("Success!")
+    st.success("Success! Now refresh page...")
     time.sleep(1)
     st.experimental_rerun()
 
@@ -31,7 +31,7 @@ def remove_income(income_id):
     coro = remove_income_async(income_id)
     with st.spinner("Removing income data..."):
         asyncio.run(coro)
-    st.success("Success!")
+    st.success("Success! Now refresh page...")
     time.sleep(1)
     st.experimental_rerun()
 

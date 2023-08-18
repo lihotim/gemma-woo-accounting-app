@@ -20,7 +20,7 @@ def add_expense_item(date, category, item, amount):
     coro = add_expense_item_async(full_datetime, category, item, amount)
     with st.spinner("Adding expense data..."):
         asyncio.run(coro)
-    st.success("Success!")
+    st.success("Success! Now refresh page...")
     time.sleep(1)
     st.experimental_rerun()
     
@@ -31,7 +31,7 @@ def remove_expense(expense_id):
     coro = remove_expense_async(expense_id)
     with st.spinner("Removing expense data..."):
         asyncio.run(coro)
-    st.success("Success!")
+    st.success("Success! Now refresh page...")
     time.sleep(1)
     st.experimental_rerun()
 

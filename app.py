@@ -29,7 +29,7 @@ def load_css_file(css_file_path):
 # --- PAGE CONFIG ---
 st.set_page_config(
     page_title="Gemma Woo's Accounting App",
-    page_icon=":star:",
+    page_icon="📈",
     layout="centered",
     initial_sidebar_state="collapsed",
 )
