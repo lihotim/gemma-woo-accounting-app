@@ -100,7 +100,7 @@ def statistics():
 
     with col2:
         # df_expense_by_month = get_expense_by_month(expense_data)
-        EXPENSE_CATEGORIES = ["Rent", "Salaries", "Supplies", "Utilities", "Advertising", "Travel", "Others"]
+        EXPENSE_CATEGORIES = ["Rent", "Salaries", "Utilities", "Advertising", "Travel", "Others"]
         EXPENSE_COLUMN_ORDER = ["key", "category", "item", "amount"]
         df_expense = pd.DataFrame(expense_data)
         df_expense = df_expense[EXPENSE_COLUMN_ORDER] # rearrange column order
@@ -129,7 +129,6 @@ def statistics():
                 )
 
 
-    st.divider()
     st.subheader("Total Income and Expense Summary")
     df_income_by_month = convert_to_monthly_summary(df_income, month_options)
     df_income_by_month = df_income_by_month.reset_index(drop=True)
@@ -148,23 +147,65 @@ def statistics():
                     }
                 )
     
-    st.subheader("Trend in Income and Expense")
+
+    st.divider()
+    st.subheader("Trend in Total Income and Expense")
     start_month, end_month = st.select_slider(
         'Select a time range:',
         options=months_list,
-        value=(months_list[0], months_list[-1]) 
+        value=(months_list[0], months_list[-1]) # default to choose from first month to latest month
     )
 
-    df_income_expense_by_month = df_income_expense_by_month[
-        (df_income_expense_by_month['month'] >= start_month) &
-        (df_income_expense_by_month['month'] <= end_month)
+    # Filter Line chart of "Income by category" by selected months
+    df_income_by_category['month'] = pd.to_datetime(df_income_by_category['month'], format='%Y %b')
+    df_income_by_category = df_income_by_category[
+        (df_income_by_category['month'] >= pd.to_datetime(start_month, format='%Y %b')) & 
+        (df_income_by_category['month'] <= pd.to_datetime(end_month, format='%Y %b'))
     ]
-    # st.line_chart(df_income_expense_by_month, x="month", use_container_width=True)
-    plt.figure(figsize=(8, 4))
+    df_income_by_category['month'] = df_income_by_category['month'].dt.strftime('%Y %b')
+
+    # Filter # Line chart of "Expense by category" by selected months
+    df_expense_by_category['month'] = pd.to_datetime(df_expense_by_category['month'], format='%Y %b')
+    df_expense_by_category = df_expense_by_category[
+        (df_expense_by_category['month'] >= pd.to_datetime(start_month, format='%Y %b')) & 
+        (df_expense_by_category['month'] <= pd.to_datetime(end_month, format='%Y %b'))
+    ]
+    df_expense_by_category['month'] = df_expense_by_category['month'].dt.strftime('%Y %b')
+
+    # Filter Line chart of "Total Income, Expense and Net Income" by selected months
+    df_income_expense_by_month = df_income_expense_by_month[
+        (df_income_expense_by_month['month'] >= start_month) & (df_income_expense_by_month['month'] <= end_month)
+    ]
+
+
+    # Display Line chart of "Income by category"
+    plt.figure(figsize=(10, 4))
+    plt.title('Income by category')
+    for category in INCOME_CATEGORIES:
+        plt.plot(df_income_by_category['month'], df_income_by_category[category], marker='^', label=category)
+    plt.xlabel('Month')
+    plt.ylabel('Amount')
+    plt.legend()
+    plt.grid(True)
+    st.pyplot(plt)
+
+    # Display Line chart of "Expense by category"
+    plt.figure(figsize=(10, 4))
+    plt.title('Expense by category')
+    for category in EXPENSE_CATEGORIES:
+        plt.plot(df_expense_by_category['month'], df_expense_by_category[category], marker='v', label=category)
+    plt.xlabel('Month')
+    plt.ylabel('Amount')
+    plt.legend()
+    plt.grid(True)
+    st.pyplot(plt)
+
+    # Display Line chart of "Total Income, Expense and Net Income"
+    plt.figure(figsize=(10, 4))
+    plt.title('Total Income, Expense and Net Income')
     plt.plot(df_income_expense_by_month['month'], df_income_expense_by_month['Income'], marker='^', label='Income')
     plt.plot(df_income_expense_by_month['month'], df_income_expense_by_month['Expense'], marker='v', label='Expense')
     plt.plot(df_income_expense_by_month['month'], df_income_expense_by_month['Net Income'], marker='o', label='Net Income')
-    plt.title('Income and Expense by Month')
     plt.xlabel('Month')
     plt.ylabel('Amount')
     plt.legend()
@@ -172,13 +213,15 @@ def statistics():
     st.pyplot(plt)
 
 
+    # Export excel and word files
     st.divider()
+    st.subheader("Download statistics files")
     # Export excel file
     excel_buffer = io.BytesIO()
     with pd.ExcelWriter(excel_buffer, engine="xlsxwriter") as writer:
         df_income_by_category.to_excel(writer, sheet_name="Income by Category", index=False)
         df_expense_by_category.to_excel(writer, sheet_name="Expense by Category", index=False)
-        df_income_expense_by_month.to_excel(writer, sheet_name="Income & Expense Summary", index=False)
+        df_income_expense_by_month.to_excel(writer, sheet_name="Total Income & Expense Summary", index=False)
 
     b64 = base64.b64encode(excel_buffer.getvalue()).decode()
     href = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="statistics.xlsx" class="button">Download Excel Report</a>'
@@ -188,9 +231,8 @@ def statistics():
     dataframes = {
         "Income by Category": df_income_by_category,
         "Expense by Category": df_expense_by_category,
-        "Income & Expense Summary": df_income_expense_by_month
+        "Total Income & Expense Summary": df_income_expense_by_month
     }
-    
     doc = create_word_report(dataframes)
     doc_buffer = io.BytesIO()
     doc.save(doc_buffer)

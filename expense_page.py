@@ -39,7 +39,7 @@ def remove_expense(expense_id):
 def expense():
     # Add expense form
     st.header("Add Expense")
-    CATEGORIES = ["Rent", "Salaries", "Supplies", "Utilities", "Advertising", "Travel", "Others"]
+    CATEGORIES = ["Rent", "Salaries", "Utilities", "Advertising", "Travel", "Others"]
     COLUMN_ORDER = ["key", "category", "item", "amount"]
     date = st.date_input("Date")
     category = st.selectbox("Category", CATEGORIES)
@@ -52,7 +52,7 @@ def expense():
             add_expense_item(date, category, item, amount)
 
 
-     # Filter by month and category
+
     st.divider()
     expense_data = fetch_all_expenses_cached()
     df_expense = pd.DataFrame(expense_data)
@@ -60,26 +60,28 @@ def expense():
     df_expense['month'] = df_expense['key'].apply(utils.format_month) # add a new column "month", by reading the date from "key"
     month_options = df_expense['month'].unique() # list of months, e.g. ['2023 May' '2023 Jun' '2023 Jul' '2023 Aug']
     
-    selected_month = st.multiselect(
-            'Filter by Month',
-            options=month_options,
-            default=month_options[-1], # default to choose only the latest month
-    )
-    selected_categories = st.multiselect(
-        'Filter by Category',
-        options=CATEGORIES,
-        default=CATEGORIES,
-    )
-    
+     
     # Display all expenses and delete button in 2 columns (2:1)
     col1, col2 = st.columns([2,1])
     with col1:
+        st.subheader("Expense Items")
+
+        # Filter by month and category
+        selected_month = st.multiselect(
+                'Filter by Month',
+                options=month_options,
+                default=month_options[-1], # default to choose only the latest month
+        )
+        selected_categories = st.multiselect(
+            'Filter by Category',
+            options=CATEGORIES,
+            default=CATEGORIES,
+        )
         filtered_df_expense = df_expense[
             (df_expense['category'].isin(selected_categories)) &
             (df_expense['month'].isin(selected_month))
         ]
         filtered_df_expense = filtered_df_expense.drop(columns=['month'])  # Drop the 'month' column
-        st.subheader("Expense Items")
         st.dataframe(filtered_df_expense, 
                      hide_index=True, 
                      use_container_width=True,
@@ -109,12 +111,11 @@ def expense():
             else:
                 st.warning("Please select an expense id to delete.")
 
-    
 
     # Show pie chart and table in 2 columns
     col1, col2 = st.columns([2,1])
     with col1:
-        st.subheader("Expense Pie Chart")
+        st.subheader("Expense Distribution")
         expense_by_category = filtered_df_expense.groupby("category")["amount"].sum()
         fig, ax = plt.subplots(figsize=(8, 6))
         wedges, texts, autotexts = ax.pie(
@@ -131,7 +132,6 @@ def expense():
         selected_month_str = ", ".join(selected_month)
         st.subheader("Total Expense")
         st.write(f"Period: {selected_month_str}")
-        st.metric(label="HKD", value=f"${total_expense:.2f}")
 
         expense_table = pd.DataFrame(expense_by_category)
         expense_table = expense_table.sort_values(by="amount", ascending=False)
@@ -144,6 +144,7 @@ def expense():
                 "amount": st.column_config.NumberColumn("Amount", format="$%d")
                 }
         )
+        st.metric(label="HKD", value=f"${total_expense:.2f}")
 
 
 if __name__ == "__main__":
