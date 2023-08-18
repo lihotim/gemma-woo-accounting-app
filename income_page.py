@@ -53,7 +53,6 @@ def income():
             add_income_item(date, category, item, customer, amount)
 
 
-    # Filter by month and category
     st.divider()
     income_data = fetch_all_incomes_cached()
     df_income = pd.DataFrame(income_data)
@@ -61,26 +60,28 @@ def income():
     df_income['month'] = df_income['key'].apply(utils.format_month) # add a new column "month", by reading the date from "key"
     month_options = df_income['month'].unique() # list of months, e.g. ['2023 May' '2023 Jun' '2023 Jul' '2023 Aug']
 
-    selected_month = st.multiselect(
-        'Filter by Month',
-        options=month_options,
-        default=month_options[-1], # default to choose only the latest month
-    )
-    selected_categories = st.multiselect(
-        'Filter by Category',
-        options=CATEGORIES,
-        default=CATEGORIES,
-    )
 
     # Display all incomes and delete button in 2 columns (2:1)
     col1, col2 = st.columns([2,1])
     with col1:
+        st.subheader("Income Items")
+
+        # Filter by month and category
+        selected_month = st.multiselect(
+            'Filter by Month',
+            options=month_options,
+            default=month_options[-1], # default to choose only the latest month
+        )
+        selected_categories = st.multiselect(
+            'Filter by Category',
+            options=CATEGORIES,
+            default=CATEGORIES,
+        )
         filtered_df_income = df_income[
             (df_income['category'].isin(selected_categories)) &
             (df_income['month'].isin(selected_month))
         ]
         filtered_df_income = filtered_df_income.drop(columns=['month'])  # Drop the 'month' column
-        st.subheader("Income Items")
         st.dataframe(filtered_df_income, 
                      hide_index=True, 
                      use_container_width=True,
@@ -111,11 +112,10 @@ def income():
                 st.warning("Please select an income id to delete.")
 
 
-
     # Show pie chart and table in 2 columns
     col1, col2 = st.columns([2,1])
     with col1:
-        st.subheader("Income Pie Chart")
+        st.subheader("Income Distribution")
         income_by_category = filtered_df_income.groupby("category")["amount"].sum()
         fig, ax = plt.subplots(figsize=(8, 6))
         wedges, texts, autotexts = ax.pie(
@@ -132,7 +132,6 @@ def income():
         selected_month_str = ", ".join(selected_month)
         st.subheader("Total Income")
         st.write(f"Period: {selected_month_str}")
-        st.metric(label="HKD", value=f"${total_income:.2f}")
 
         income_table = pd.DataFrame(income_by_category)
         income_table = income_table.sort_values(by="amount", ascending=False)
@@ -145,6 +144,7 @@ def income():
                 "amount": st.column_config.NumberColumn("Amount", format="$%d")
                 }
         )
+        st.metric(label="HKD", value=f"${total_income:.2f}")
 
 
 if __name__ == "__main__":
