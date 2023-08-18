@@ -38,10 +38,10 @@ load_css_file(CSS_FILE)
 def streamlit_menu():
     # 2. horizontal menu w/o custom style
     selected = option_menu(
+        menu_icon="clipboard-data-fill",  # optional, from "https://icons.getbootstrap.com/"
         menu_title="Gemma Woo's Accounting app",  # required
         options=TAB_OPTIONS,  # required
-        # icons=["house", "book", "envelope"],  # optional
-        # menu_icon="cast",  # optional
+        icons=["inboxes-fill", "cash-stack", "cash-stack", "graph-up"],  # optional, from "https://icons.getbootstrap.com/"
         default_index=0,  # optional
         orientation="horizontal",
     )
