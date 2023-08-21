@@ -9,11 +9,9 @@ from expense_page import expense
 from statistics_page import statistics
 
 # features we want:
-# - fix ALL the titles, headers, labels, copywritings
-# - change ALL fetch_all functions to async, for all pages (need?)
-# - test if data length exceeds 1000
+# - change ALL fetch_all functions to async (need?)
 
-PAGE_TITLE = "胡醫師的會計App"
+PAGE_TITLE = "胡醫師的會計程式"
 TAB_OPTIONS = ["存貨", "收入", "支出", "統計"]
     
 # --- PATH SETTINGS ---
@@ -37,7 +35,7 @@ load_css_file(CSS_FILE)
 
 
 def streamlit_menu():
-    # 2. horizontal menu w/o custom style
+    # horizontal menu w/o custom style
     selected = option_menu(
         menu_icon="clipboard-data-fill",  # optional, from "https://icons.getbootstrap.com/"
         menu_title=PAGE_TITLE,  # required
