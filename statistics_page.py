@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import utils
 import matplotlib.pyplot as plt
+from matplotlib import font_manager
 import io
 import base64
 from docx import Document
@@ -62,8 +63,7 @@ def create_word_report(dataframes):
     
 
 def statistics():
-    st.header("Statistics")
-    # st.write(f'(We want to look at the trend of income and expense from each category here)')
+    st.header("統計")
     
     income_data = fetch_all_incomes_cached()
     expense_data = fetch_all_expenses_cached()
@@ -96,11 +96,11 @@ def statistics():
         df_income_by_category = pd.DataFrame(columns=['month'] + INCOME_CATEGORIES)
 
     
-    st.subheader("Income by category")
+    st.subheader("收入類別")
     st.dataframe(df_income_by_category, 
                     hide_index=True,
                     use_container_width=True,
-                    column_config={"month": st.column_config.TextColumn("Month")}
+                    column_config={"month": st.column_config.TextColumn("月份")}
                 )
 
 
@@ -130,16 +130,16 @@ def statistics():
         df_expense_by_category = pd.DataFrame(columns=['month'] + EXPENSE_CATEGORIES)
 
 
-    st.subheader("Expense by category")
+    st.subheader("支出類別")
     st.dataframe(df_expense_by_category,
                     hide_index=True,
                     use_container_width=True,
-                    column_config={"month": st.column_config.TextColumn("Month")},
+                    column_config={"month": st.column_config.TextColumn("月份")},
                 )
 
 
     if len(income_data) > 0 and len(expense_data) > 0:
-        st.subheader("Total Income and Expense Summary")
+        st.subheader("總收入支出總結")
         df_income_by_month = convert_to_monthly_summary(df_income, month_options)
         df_income_by_month = df_income_by_month.reset_index(drop=True)
         df_expense_by_month = convert_to_monthly_summary(df_expense, month_options)
@@ -151,19 +151,19 @@ def statistics():
                         hide_index=True,
                         use_container_width=True,
                         column_config={
-                        "month": st.column_config.TextColumn("Month"),
-                        "Income": st.column_config.NumberColumn("Total Income", format="$%d"),
-                        "Expense": st.column_config.NumberColumn("Total Expense", format="$%d"),
-                        "Net Income": st.column_config.NumberColumn("Net Income", format="$%d"),
+                        "month": st.column_config.TextColumn("月份"),
+                        "Income": st.column_config.NumberColumn("總收入", format="$%d"),
+                        "Expense": st.column_config.NumberColumn("總支出", format="$%d"),
+                        "Net Income": st.column_config.NumberColumn("淨收入", format="$%d"),
                         }
                     )
         
 
 
         st.divider()
-        st.subheader("Trend in Total Income and Expense")
+        st.subheader("收入支出趨勢")
         start_month, end_month = st.select_slider(
-            'Select a time range:',
+            "選擇時限：",
             options=months_list,
             value=(months_list[0], months_list[-1]) 
         )
@@ -189,73 +189,86 @@ def statistics():
             (df_income_expense_by_month['month'] >= start_month) & (df_income_expense_by_month['month'] <= end_month)
         ]
 
+        # Set Chinese font
+        fontP = font_manager.FontProperties(fname="./fonts/SimHei.ttf")
+        fontP.set_family('SimHei') 
+        fontP.set_size(14)
 
         # Display Line chart of "Income by category"
         plt.figure(figsize=(10, 4))
-        plt.title('Income by category')
+        plt.title('收入類別', fontproperties=fontP)
         for category in INCOME_CATEGORIES:
             plt.plot(df_income_by_category['month'], df_income_by_category[category], marker='^', label=category)
-        plt.xlabel('Month')
-        plt.ylabel('Amount')
-        plt.legend()
+        plt.xlabel('月份', fontproperties=fontP)
+        plt.ylabel('金額', fontproperties=fontP)
+        plt.legend(loc=0, prop=fontP)
         plt.grid(True)
         st.pyplot(plt)
 
         # Display Line chart of "Expense by category"
         plt.figure(figsize=(10, 4))
-        plt.title('Expense by category')
+        plt.title('支出類別', fontproperties=fontP)
         for category in EXPENSE_CATEGORIES:
             plt.plot(df_expense_by_category['month'], df_expense_by_category[category], marker='v', label=category)
-        plt.xlabel('Month')
-        plt.ylabel('Amount')
-        plt.legend()
+        plt.xlabel('月份', fontproperties=fontP)
+        plt.ylabel('金額', fontproperties=fontP)
+        plt.legend(loc=2, prop=fontP) # '2' means 'upper left'
         plt.grid(True)
         st.pyplot(plt)
 
         # Display Line chart of "Total Income, Expense and Net Income"
         plt.figure(figsize=(10, 4))
-        plt.title('Total Income, Expense and Net Income')
-        plt.plot(df_income_expense_by_month['month'], df_income_expense_by_month['Income'], marker='^', label='Income')
-        plt.plot(df_income_expense_by_month['month'], df_income_expense_by_month['Expense'], marker='v', label='Expense')
-        plt.plot(df_income_expense_by_month['month'], df_income_expense_by_month['Net Income'], marker='o', label='Net Income')
-        plt.xlabel('Month')
-        plt.ylabel('Amount')
-        plt.legend()
+        plt.title('總收入、總支出和淨收入', fontproperties=fontP)
+        plt.plot(df_income_expense_by_month['month'], df_income_expense_by_month['Income'], marker='^', label='總收入')
+        plt.plot(df_income_expense_by_month['month'], df_income_expense_by_month['Expense'], marker='v', label='總支出')
+        plt.plot(df_income_expense_by_month['month'], df_income_expense_by_month['Net Income'], marker='o', label='淨收入')
+        plt.xlabel('月份', fontproperties=fontP)
+        plt.ylabel('金額', fontproperties=fontP)
+        plt.legend(loc=0, prop=fontP)
         plt.grid(True)
         st.pyplot(plt)
 
 
         # Export excel and word files
         st.divider()
-        st.subheader("Download statistics files")
+        st.subheader("下載統計文件")
         # Export excel file
         excel_buffer = io.BytesIO()
+
+        # Modify names of columns
+        df1_2_new_column_names = {'month': '月份'}
+        df_income_by_category.rename(columns=df1_2_new_column_names, inplace=True)
+        df_expense_by_category.rename(columns=df1_2_new_column_names, inplace=True)
+
+        df3_new_column_names = {'month': '月份', 'Income': '總收入', 'Expense': '總支出', 'Net Income': '淨收入'}
+        df_income_expense_by_month.rename(columns=df3_new_column_names, inplace=True)
+
         with pd.ExcelWriter(excel_buffer, engine="xlsxwriter") as writer:
-            df_income_by_category.to_excel(writer, sheet_name="Income by Category", index=False)
-            df_expense_by_category.to_excel(writer, sheet_name="Expense by Category", index=False)
-            df_income_expense_by_month.to_excel(writer, sheet_name="Total Income & Expense Summary", index=False)
+            df_income_by_category.to_excel(writer, sheet_name="收入類別", index=False)
+            df_expense_by_category.to_excel(writer, sheet_name="支出類別", index=False)
+            df_income_expense_by_month.to_excel(writer, sheet_name="總收入支出總結", index=False)
 
         b64 = base64.b64encode(excel_buffer.getvalue()).decode()
-        href = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="statistics.xlsx" class="button">Download Excel Report</a>'
+        href = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="statistics.xlsx" class="button">下載Excel報告</a>'
         st.markdown(href, unsafe_allow_html=True)
 
         # Export word file
         dataframes = {
-            "Income by Category": df_income_by_category,
-            "Expense by Category": df_expense_by_category,
-            "Total Income & Expense Summary": df_income_expense_by_month
+            "收入類別": df_income_by_category,
+            "支出類別": df_expense_by_category,
+            "總收入支出總結": df_income_expense_by_month
         }
         doc = create_word_report(dataframes)
         doc_buffer = io.BytesIO()
         doc.save(doc_buffer)
         doc_buffer.seek(0)
         b64 = base64.b64encode(doc_buffer.read()).decode()
-        href = f'<a href="data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64,{b64}" download="statistics.docx" class="button">Download Word Report</a>'
+        href = f'<a href="data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64,{b64}" download="statistics.docx" class="button">下載Word報告</a>'
         st.markdown(href, unsafe_allow_html=True)
 
     else:
-        st.subheader("Total Income and Expense Summary")
-        st.warning("Oops! It looks like either income or expense data is missing. To view the Total Income and Expense Summary and their trends, please make sure to import the necessary data.")
+        st.subheader("總收入支出總結")
+        st.warning("請注意！您的收入或支出數據並不存在。 如果想查看總收入、總支出及相關圖表，請先引入相關數據。")
 
 
 if __name__ == "__main__":

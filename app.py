@@ -13,7 +13,8 @@ from statistics_page import statistics
 # - change ALL fetch_all functions to async, for all pages (need?)
 # - test if data length exceeds 1000
 
-TAB_OPTIONS = ["Inventory", "Income", "Expense", "Statistics"]
+PAGE_TITLE = "胡醫師的會計App"
+TAB_OPTIONS = ["存貨", "收入", "支出", "統計"]
     
 # --- PATH SETTINGS ---
 THIS_DIR = Path(__file__).parent if "__file__" in locals() else Path.cwd()
@@ -27,7 +28,7 @@ def load_css_file(css_file_path):
 
 # --- PAGE CONFIG ---
 st.set_page_config(
-    page_title="Gemma Woo's Accounting App",
+    page_title=PAGE_TITLE,
     page_icon="📈",
     layout="centered",
     initial_sidebar_state="collapsed",
@@ -39,7 +40,7 @@ def streamlit_menu():
     # 2. horizontal menu w/o custom style
     selected = option_menu(
         menu_icon="clipboard-data-fill",  # optional, from "https://icons.getbootstrap.com/"
-        menu_title="Gemma Woo's Accounting app",  # required
+        menu_title=PAGE_TITLE,  # required
         options=TAB_OPTIONS,  # required
         icons=["inboxes-fill", "cash-stack", "cash-stack", "graph-up"],  # optional, from "https://icons.getbootstrap.com/"
         default_index=0,  # optional
