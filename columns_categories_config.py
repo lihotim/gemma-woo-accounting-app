@@ -1,6 +1,6 @@
 # Inventory page
 HERB_BRANDS = ["三九", "海天", "其他"]
-INVENTORY_COLUMN_ORDER = ["key", "brand", "herb_name", "unit_price", "inventory"] # same no. of columns as inventory_db, just in different order
+INVENTORY_COLUMN_ORDER = ["key", "brand", "herb_name", "cost_price", "selling_price", "inventory"] # same no. of columns as inventory_db, just in different order
 
 # Income page
 CATEGORIES_TO_COUNT = ["診症", "中藥零售"]

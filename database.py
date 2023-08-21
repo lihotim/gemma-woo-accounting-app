@@ -3,7 +3,7 @@ import random
 
 from deta import Deta  # pip install deta
 from dotenv import load_dotenv  # pip install python-dotenv
-
+import columns_categories_config as ccconfig
 
 # Load the environment variables
 load_dotenv(".env")
@@ -20,26 +20,36 @@ expense_db = deta.Base("expense_db")
 
 # ---- 1. inventory_db ----
 
-def insert_herb(herb_id, brand, herb_name, unit_price, inventory):
+def insert_herb(herb_id, brand, herb_name, cost_price, selling_price, inventory):
     """Returns the user on a successful user creation, otherwise raises and error"""
     return inventory_db.put(
         {
             "key": herb_id,
             "brand": brand,
             "herb_name": herb_name,
-            "unit_price": unit_price,
+            "cost_price": cost_price,
+            "selling_price": selling_price,
             "inventory": inventory,
         }
     )
 
 # Insert 1 herb manually
-# print(insert_herb("h1001", "Hoi Tin", "herb-1001", 300, 3))
+# print(insert_herb("h1", "三九", "herb-1001", 100, 200, 10))
 
 # Insert many herbs
-# brand_list = ["Sam Gau", "Hoi Tin", "Others"]
-# for id in range(1, 21): # loop from 1 to 20
+brand_list = ccconfig.HERB_BRANDS
+chinese_herbs = [
+    "人蔘", "黃芪", "陳皮", "白芍", "當歸",
+    "甘草", "桂枝", "川芎", "熟地黃", "五味子",
+    "黃連", "枸杞子", "柴胡", "茯苓", "麥門冬",
+    "防風", "金櫻子", "白朮", "艾葉", "連翹",
+    "川貝", "山藥", "田七", "玄參", "阿膠",
+    "山茱萸", "蒲公英", "槐花", "玉竹", "天麻"
+]
+# for id in range(1, 31): # loop from 1 to 30
 #     brand = random.choice(brand_list)
-#     result = insert_herb(f"h{id}", brand, f"herb-{id}", 100, 10)
+#     herb_name = random.choice(chinese_herbs)
+#     result = insert_herb(f"h0{id}", brand, herb_name, 100, 200, 10)
 #     print(result)
 
 
@@ -50,7 +60,7 @@ def fetch_all_herbs():
     last_item_key = None
     while True:
         response = inventory_db.fetch(limit=100, last=last_item_key)
-        print(len(response.items))
+        # print(len(response.items))
         all_herbs.extend(response.items)
         if not response.last:
             break

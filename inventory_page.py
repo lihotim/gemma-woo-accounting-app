@@ -12,12 +12,12 @@ def fetch_all_herbs_cache():
     return data
 
 
-def add_new_herb(herb_id, brand, herb_name, unit_price, stock):
-    async def add_new_herb_async(herb_id, brand, herb_name, unit_price, stock):
-        db.insert_herb(herb_id, brand, herb_name, unit_price, stock)
+def add_new_herb(herb_id, brand, herb_name, cost_price, selling_price, stock):
+    async def add_new_herb_async(herb_id, brand, herb_name, cost_price, selling_price, stock):
+        db.insert_herb(herb_id, brand, herb_name, cost_price, selling_price, stock)
         st.cache_data.clear()
 
-    coro = add_new_herb_async(herb_id, brand, herb_name, unit_price, stock)
+    coro = add_new_herb_async(herb_id, brand, herb_name, cost_price, selling_price, stock)
     with st.spinner("正在加入中藥數據..."):
         asyncio.run(coro)
     st.success(ccconfig.SUCCESS_MSG)
@@ -63,7 +63,7 @@ def remove_herb(herb_id):
 
 def inventory():
     BRANDS = ccconfig.HERB_BRANDS # ["Sam Gau", "Hoi Tin", "Others"]
-    COLUMN_ORDER = ccconfig.INVENTORY_COLUMN_ORDER # ["key", "brand", "herb_name", "unit_price", "inventory"]
+    COLUMN_ORDER = ccconfig.INVENTORY_COLUMN_ORDER # ["key", "brand", "herb_name", "cost_price", "selling_price", "inventory"]
     inventory_data = fetch_all_herbs_cache()
     df_inventory = pd.DataFrame(inventory_data, columns=COLUMN_ORDER) # initialize dataframe with the expected column order
     herb_id_list = df_inventory['key'].tolist() # list of all herb_id
@@ -73,16 +73,17 @@ def inventory():
     herb_id = st.text_input("中藥編號")
     brand = st.selectbox("品牌", BRANDS)
     herb_name = st.text_input("中藥名稱")
-    unit_price = st.number_input("來貨價", step=0.1)
+    cost_price = st.number_input("來貨價", step=0.1)
+    selling_price = st.number_input("零售價", step=0.1) # Can be 0 or None
     stock = st.number_input("數量", step=1)
 
     if st.button("新增中藥"):
-        if any(field == "" for field in [herb_id, brand, herb_name, unit_price, stock]):
+        if any(field == "" for field in [herb_id, brand, herb_name, cost_price, stock]):
             st.warning(ccconfig.WARNING_MSG_FILL_ALL)
         elif herb_id in herb_id_list:
             st.warning("中藥編號已存在，請填寫另一個編號。")
         else:
-            add_new_herb(herb_id, brand, herb_name, unit_price, stock)
+            add_new_herb(herb_id, brand, herb_name, cost_price, selling_price, stock)
 
 
         
@@ -110,7 +111,8 @@ def inventory():
                 "key": st.column_config.Column("中藥編號", disabled=True, help=ccconfig.INFO_MSG_NOT_EDITABLE),
                 "brand": st.column_config.TextColumn("品牌", disabled=True, help=ccconfig.INFO_MSG_NOT_EDITABLE),
                 "herb_name": st.column_config.TextColumn("中藥名稱"),
-                "unit_price": st.column_config.NumberColumn("來貨價", min_value=0, format="$%d"),
+                "cost_price": st.column_config.NumberColumn("來貨價", min_value=0, format="$%d"),
+                "selling_price": st.column_config.NumberColumn("零售價", min_value=0, format="$%d"),
                 "inventory": st.column_config.NumberColumn("數量", min_value=0, step=1),
             },
         )
@@ -150,7 +152,8 @@ def inventory():
             column_config={
                 "key": st.column_config.Column("中藥編號", disabled=True),
                 "herb_name": st.column_config.TextColumn("中藥名稱"),
-                "unit_price": st.column_config.NumberColumn("來貨價", format="$%d"),
+                "cost_price": st.column_config.NumberColumn("來貨價", format="$%d"),
+                "selling_price": st.column_config.NumberColumn("零售價", min_value=0, format="$%d"),
                 "inventory": st.column_config.NumberColumn("數量"),
             }
         )
