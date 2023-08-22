@@ -2,6 +2,11 @@ import streamlit as st
 import pandas as pd
 import asyncio
 import time
+import io
+import base64
+import docx
+from docx import Document
+from docx.enum.text import WD_ALIGN_PARAGRAPH
 
 import database as db
 import columns_categories_config as ccconfig
@@ -144,7 +149,8 @@ def inventory():
         brand_data = df_inventory[df_inventory["brand"] == brand]
         brand_data = brand_data[COLUMN_ORDER]
         brand_data = brand_data.drop(columns=["brand"])
-        st.subheader(brand)
+        num_items = brand_data.shape[0]  # Count number of items for the brand
+        st.subheader(f"{brand} ({num_items}項)")
         st.dataframe(
             brand_data, 
             hide_index=True,
@@ -157,6 +163,50 @@ def inventory():
                 "inventory": st.column_config.NumberColumn("數量"),
             }
         )
+
+    # Export excel and word files
+    st.divider()
+    st.subheader("下載存貨文件")
+
+    # Export Excel button
+    excel_dataframes = {
+        f"{brand}存貨": df_inventory[df_inventory["brand"] == brand][COLUMN_ORDER]
+        .drop(columns=["brand"])
+        .sort_values(by="herb_name")
+        .reset_index(drop=True)
+        .rename(columns={"key": "中藥編號", "herb_name": "中藥名稱", "cost_price": "來貨價", "selling_price": "零售價", "inventory": "數量"})
+        for brand in BRANDS
+    }
+    excel_buffer = io.BytesIO()
+    with pd.ExcelWriter(excel_buffer, engine="xlsxwriter") as writer:
+        for sheet_name, data in excel_dataframes.items():
+            data.to_excel(writer, sheet_name=sheet_name, index=False)
+    b64_excel = base64.b64encode(excel_buffer.getvalue()).decode()
+    href_excel = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64_excel}" download="inventory.xlsx" class="button">下載Excel報告</a>'
+    st.markdown(href_excel, unsafe_allow_html=True)
+
+    # Export Word button
+    doc = docx.Document()
+    for brand, data in excel_dataframes.items():
+        num_items = data.shape[0]  # Count number of items for the brand
+        doc.add_heading(f"{brand} ({num_items}項)", level=1)  # Add num_items to the title
+        # Add table with gridlines
+        table = doc.add_table(data.shape[0] + 1, data.shape[1])
+        table.style = "Table Grid"
+        for j, col_name in enumerate(data.columns):
+            table.cell(0, j).text = col_name
+            for i in range(data.shape[0]):
+                table.cell(i + 1, j).text = str(data.iloc[i, j])
+        for row in table.rows:
+            for cell in row.cells:
+                cell.paragraphs[0].alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER
+                cell.paragraphs[0].paragraph_format.alignment = docx.enum.text.WD_PARAGRAPH_ALIGNMENT.CENTER
+    doc_buffer = io.BytesIO()
+    doc.save(doc_buffer)
+    doc_buffer.seek(0)
+    b64_word = base64.b64encode(doc_buffer.read()).decode()
+    href_word = f'<a href="data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64,{b64_word}" download="inventory.docx" class="button">下載Word報告</a>'
+    st.markdown(href_word, unsafe_allow_html=True)
 
 
 if __name__ == "__main__":
