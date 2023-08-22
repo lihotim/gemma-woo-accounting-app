@@ -167,12 +167,17 @@ def inventory():
     # Export excel and word files
     st.divider()
     st.subheader("下載存貨文件")
+    arrange_by_mapping = {
+        "key": "中藥編號",
+        "herb_name": "中藥名稱"
+    }
+    arrange_by = st.selectbox("排列方式", ["key", "herb_name"], format_func=lambda option: arrange_by_mapping[option])
 
     # Export Excel button
     excel_dataframes = {
         f"{brand}存貨": df_inventory[df_inventory["brand"] == brand][COLUMN_ORDER]
         .drop(columns=["brand"])
-        .sort_values(by="herb_name")
+        .sort_values(by=arrange_by)
         .reset_index(drop=True)
         .rename(columns={"key": "中藥編號", "herb_name": "中藥名稱", "cost_price": "來貨價", "selling_price": "零售價", "inventory": "數量"})
         for brand in BRANDS
