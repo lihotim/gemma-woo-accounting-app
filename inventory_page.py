@@ -167,7 +167,6 @@ def inventory():
     # Export excel and word files
     st.divider()
     st.subheader("下載存貨文件")
-    # arrange_by = st.selectbox("排列方式", ["key", "herb_name"])
     arrange_by_mapping = {
         "key": "中藥編號",
         "herb_name": "中藥名稱"
