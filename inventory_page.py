@@ -190,7 +190,7 @@ def inventory():
         "key": "存貨編號",
         "herb_name": "存貨名稱"
     }
-    arrange_by = st.selectbox("排列方式", ["key", "herb_name"], format_func=lambda option: arrange_by_mapping[option])
+    arrange_by = st.selectbox("排序方式", ["key", "herb_name"], format_func=lambda option: arrange_by_mapping[option])
 
     # Export Excel button
     excel_dataframes = {
