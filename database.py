@@ -16,6 +16,7 @@ deta = Deta(DETA_KEY)
 inventory_db = deta.Base("inventory_db")
 income_db = deta.Base("income_db")
 expense_db = deta.Base("expense_db")
+users_db = deta.Base("users_db")
 
 
 # ---- 1. inventory_db ----
@@ -206,3 +207,30 @@ def delete_expense(time):
     return expense_db.delete(time)
 
 # print(delete_expense("2023-08-16-08:02"))
+
+
+# ---- 4. users_db ----
+def insert_user(username, name, password):
+    """Returns the user on a successful user creation, otherwise raises and error"""
+    return users_db.put({"key": username, "name": name, "password": password})
+
+
+def fetch_all_users():
+    """Returns a dict of all users"""
+    res = users_db.fetch()
+    return res.items
+
+
+def get_user(username):
+    """If not found, the function will return None"""
+    return users_db.get(username)
+
+
+def update_user(username, updates):
+    """If the item is updated, returns None. Otherwise, an exception is raised"""
+    return users_db.update(updates, username)
+
+
+def delete_user(username):
+    """Always returns None, even if the key does not exist"""
+    return users_db.delete(username)
