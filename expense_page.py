@@ -6,35 +6,58 @@ import asyncio
 from datetime import datetime
 import utils
 import time
+import io
+import base64
 
 import database as db
 import columns_categories_config as ccconfig
 
 @st.cache_data
 def fetch_all_expenses_cached():
-    data = db.fetch_all_expenses()
-    return data
+    try:
+        data = db.fetch_all_expenses()
+        return data
+    except Exception as e:
+        st.error(f"讀取支出數據時發生錯誤：{e}")
+        return []
 
-def add_expense_item(date, category, item, amount):
-    current_time = datetime.now().strftime("%H:%M:%S")
-    full_datetime = f"{date.strftime('%Y-%m-%d')}-{current_time}"
-    async def add_expense_item_async(full_datetime, category, item, amount):
-        db.insert_expense(full_datetime, category, item, amount)
-        st.cache_data.clear()
-    coro = add_expense_item_async(full_datetime, category, item, amount)
-    with st.spinner("正在加入支出數據..."):
+
+def add_expense_item(expense_id, date, category, item, amount):
+    parsed_date = datetime.strptime(str(date), "%Y-%m-%d")
+    formatted_date = parsed_date.strftime("%d-%b-%y")
+
+    async def add_expense_item_async(expense_id, formatted_date, category, item, amount):
+        try:
+            db.insert_expense(expense_id, formatted_date, category, item, amount)
+        except Exception as e:
+            st.error(f"An error occurred: {e}")
+        finally:
+            st.cache_data.clear()
+
+    coro = add_expense_item_async(expense_id, formatted_date, category, item, amount)
+
+    with st.spinner("正在加入支出項目..."):
         asyncio.run(coro)
+
     st.success(ccconfig.SUCCESS_MSG)
     time.sleep(1)
     st.experimental_rerun()
     
+
 def remove_expense(expense_id):
     async def remove_expense_async(expense_id):
-        db.delete_expense(expense_id)
-        st.cache_data.clear()
+        try:
+            db.delete_expense(expense_id)
+        except Exception as e:
+            st.error(f"An error occurred: {e}")
+        finally:
+            st.cache_data.clear()
+
     coro = remove_expense_async(expense_id)
-    with st.spinner("正在移除支出數據..."):
+
+    with st.spinner("正在移除支出項目..."):
         asyncio.run(coro)
+
     st.success(ccconfig.SUCCESS_MSG)
     time.sleep(1)
     st.experimental_rerun()
@@ -42,25 +65,26 @@ def remove_expense(expense_id):
 
 def expense():
     # Add expense form
-    st.header("新增支出")
+    st.header("新增支出項目")
     CATEGORIES = ccconfig.EXPENSE_CATEGORIES # ["Rent", "Salaries", "Utilities", "Advertising", "Travel", "Others"]
     COLUMN_ORDER = ccconfig.EXPENSE_COLUMN_ORDER # ["key", "category", "item", "amount"] 
+    expense_id = st.text_input("編號")
     date = st.date_input("日期")
-    category = st.selectbox("類別", CATEGORIES)
-    item = st.text_input("項目")
+    category = st.selectbox("會計項目", CATEGORIES)
+    item = st.text_input("內容")
     amount = st.number_input("金額", step=1, min_value=0)
     if st.button("新增支出項目"):
         if any(field == "" for field in [date, category, item, amount]):
             st.warning(ccconfig.WARNING_MSG_FILL_ALL)
         else:
-            add_expense_item(date, category, item, amount)
+            add_expense_item(expense_id, date, category, item, amount)
 
 
 
     st.divider()
     expense_data = fetch_all_expenses_cached()
     df_expense = pd.DataFrame(expense_data, columns=COLUMN_ORDER) # initialize dataframe with the expected column order
-    df_expense['month'] = df_expense['key'].apply(utils.format_month) # add a new column "month", by reading the date from "key"
+    df_expense['month'] = df_expense['date'].apply(utils.format_month) # add a new column "month", by reading the "date" column
     month_options = df_expense['month'].unique() # list of months, e.g. ['2023 May' '2023 Jun' '2023 Jul' '2023 Aug']
     
      
@@ -90,11 +114,31 @@ def expense():
                      use_container_width=True,
                      column_config={
                         "key": st.column_config.Column("支出編號", disabled=True, help=ccconfig.INFO_MSG_NOT_EDITABLE),
-                        "category": st.column_config.TextColumn("類別"),
-                        "item": st.column_config.TextColumn("項目"),
+                        "date": st.column_config.TextColumn("日期"),
+                        "category": st.column_config.TextColumn("會計項目"),
+                        "item": st.column_config.TextColumn("內容"),
                         "amount": st.column_config.NumberColumn("金額", format="$%d"),
                      }
         )
+
+
+    # Export excel file
+    column_titles = {
+        "key": "支出編號",
+        "date": "日期",
+        "category": "會計項目",
+        "item": "內容",
+        "amount": "金額"
+    }
+    excel_export_df = filtered_df_expense.rename(columns=column_titles)
+    excel_buffer = io.BytesIO()
+
+    with pd.ExcelWriter(excel_buffer, engine="xlsxwriter") as writer:
+        excel_export_df.to_excel(writer, sheet_name="支出報告", index=False)
+
+    b64 = base64.b64encode(excel_buffer.getvalue()).decode()
+    href = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="expense_data.xlsx" class="button">下載Excel支出報告</a>'
+    st.markdown(href, unsafe_allow_html=True)
 
 
     with col2:
@@ -158,6 +202,11 @@ def expense():
                 }
         )
         st.metric(label="HKD", value=f"${total_expense:.2f}")
+
+        # Display counts for certain categories
+
+
+
 
 
 if __name__ == "__main__":
