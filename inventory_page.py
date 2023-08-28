@@ -93,19 +93,19 @@ def inventory():
     herb_id_list = df_inventory['key'].tolist() # list of all herb_id
 
     # Display input fields for adding new inventory entries
-    st.header("新增中藥")
-    herb_id = st.text_input("中藥編號")
+    st.header("新增存貨")
+    herb_id = st.text_input("存貨編號")
     brand = st.selectbox("品牌", BRANDS)
-    herb_name = st.text_input("中藥名稱")
+    herb_name = st.text_input("存貨名稱")
     cost_price = st.number_input("來貨價", step=0.1)
     selling_price = st.number_input("零售價", step=0.1) # Can be 0 or None
     stock = st.number_input("數量", step=1)
 
-    if st.button("新增中藥"):
+    if st.button("新增存貨"):
         if any(field == "" for field in [herb_id, brand, herb_name, cost_price, stock]):
             st.warning(ccconfig.WARNING_MSG_FILL_ALL)
         elif herb_id in herb_id_list:
-            st.warning("中藥編號已存在，請填寫另一個編號。")
+            st.warning("存貨編號已存在，請填寫另一個編號。")
         else:
             add_new_herb(herb_id, brand, herb_name, cost_price, selling_price, stock)
 
@@ -132,9 +132,9 @@ def inventory():
             num_rows="fixed",
             hide_index=True,
             column_config = {
-                "key": st.column_config.Column("中藥編號", disabled=True, help=ccconfig.INFO_MSG_NOT_EDITABLE),
+                "key": st.column_config.Column("存貨編號", disabled=True, help=ccconfig.INFO_MSG_NOT_EDITABLE),
                 "brand": st.column_config.TextColumn("品牌", disabled=True, help=ccconfig.INFO_MSG_NOT_EDITABLE),
-                "herb_name": st.column_config.TextColumn("中藥名稱"),
+                "herb_name": st.column_config.TextColumn("存貨名稱"),
                 "cost_price": st.column_config.NumberColumn("來貨價", min_value=0, format="$%d"),
                 "selling_price": st.column_config.NumberColumn("零售價", min_value=0, format="$%d"),
                 "inventory": st.column_config.NumberColumn("數量", min_value=0, step=1),
@@ -144,23 +144,23 @@ def inventory():
             update_inventory(df_inventory, edited_df_inventory)
     
     with col2:
-        st.subheader("移除中藥：")
+        st.subheader("移除存貨：")
         herb_id_list = df_inventory["key"].tolist()
-        chosen_herb_id = st.text_input("輸入中藥編號移除：")
-        with st.expander("確認移除中藥", expanded=False):
+        chosen_herb_id = st.text_input("輸入存貨編號移除：")
+        with st.expander("確認移除存貨", expanded=False):
             delete_button = st.button("確認", type="primary")
 
         if delete_button:
             if chosen_herb_id:
                 if chosen_herb_id in herb_id_list:
                     remove_herb(chosen_herb_id)
-                    st.success(f"已移除中藥編號：{chosen_herb_id}，現在現在刷新頁面...")
+                    st.success(f"已移除存貨編號：{chosen_herb_id}，現在現在刷新頁面...")
                     time.sleep(1)
                     st.experimental_rerun()
                 else:
-                    st.warning("此中藥編號不存在。")
+                    st.warning("此存貨編號不存在。")
             else:
-                st.warning("請選擇中藥編號。")
+                st.warning("請選擇存貨編號。")
                 
 
     st.divider()
@@ -175,8 +175,8 @@ def inventory():
             hide_index=True,
             use_container_width=True,
             column_config={
-                "key": st.column_config.Column("中藥編號", disabled=True),
-                "herb_name": st.column_config.TextColumn("中藥名稱"),
+                "key": st.column_config.Column("存貨編號", disabled=True),
+                "herb_name": st.column_config.TextColumn("存貨名稱"),
                 "cost_price": st.column_config.NumberColumn("來貨價", format="$%d"),
                 "selling_price": st.column_config.NumberColumn("零售價", min_value=0, format="$%d"),
                 "inventory": st.column_config.NumberColumn("數量"),
@@ -187,8 +187,8 @@ def inventory():
     st.divider()
     st.subheader("下載存貨文件")
     arrange_by_mapping = {
-        "key": "中藥編號",
-        "herb_name": "中藥名稱"
+        "key": "存貨編號",
+        "herb_name": "存貨名稱"
     }
     arrange_by = st.selectbox("排列方式", ["key", "herb_name"], format_func=lambda option: arrange_by_mapping[option])
 
@@ -198,7 +198,7 @@ def inventory():
         .drop(columns=["brand"])
         .sort_values(by=arrange_by)
         .reset_index(drop=True)
-        .rename(columns={"key": "中藥編號", "herb_name": "中藥名稱", "cost_price": "來貨價", "selling_price": "零售價", "inventory": "數量"})
+        .rename(columns={"key": "存貨編號", "herb_name": "存貨名稱", "cost_price": "來貨價", "selling_price": "零售價", "inventory": "數量"})
         for brand in BRANDS
     }
     excel_buffer = io.BytesIO()
