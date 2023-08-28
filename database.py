@@ -99,11 +99,12 @@ def delete_herb(herb_id):
 
 # ---- 2. income_db ----
 
-def insert_income(time, category, item, customer, amount):
+def insert_income(income_id, date, category, item, customer, amount):
     """Returns the item on a successful income creation, otherwise raises and error"""
     return income_db.put(
         {
-            "key": time,
+            "key": income_id,
+            "date": date,
             "category": category,
             "item": item,
             "customer": customer,
@@ -112,7 +113,7 @@ def insert_income(time, category, item, customer, amount):
     )
 
 
-# print(insert_income("2023-08-16-08:10", "Consultation", "Tim", "Covid", 100))
+# print(insert_income("C00036", "28-Aug-23", "診症", "Tim", "///", 111))
 
 
 def fetch_all_incomes():
@@ -154,11 +155,12 @@ def delete_income(time):
 
 # ---- 3. expense_db ----
 
-def insert_expense(time, category, item, amount):
+def insert_expense(expense_id, date, category, item, amount):
     """Returns the item on a successful income creation, otherwise raises and error"""
     return expense_db.put(
         {
-            "key": time,
+            "key": expense_id,
+            "date": date,
             "category": category,
             "item": item,
             "amount": amount,

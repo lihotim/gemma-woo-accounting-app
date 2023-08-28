@@ -11,7 +11,7 @@ from statistics_page import statistics
 # features we want:
 # - change ALL fetch_all functions to async (need?)
 
-PAGE_TITLE = "胡醫師的會計程式"
+PAGE_TITLE = "鎧碇有限公司 - 會計程式"
 TAB_OPTIONS = ["存貨", "收入", "支出", "統計"]
     
 # --- PATH SETTINGS ---

@@ -5,25 +5,31 @@ import time
 import io
 import base64
 import docx
-from docx import Document
-from docx.enum.text import WD_ALIGN_PARAGRAPH
 
 import database as db
 import columns_categories_config as ccconfig
 
 @st.cache_data
 def fetch_all_herbs_cache():
-    data = db.fetch_all_herbs()
-    return data
+    try:
+        data = db.fetch_all_herbs()
+        return data
+    except Exception as e:
+        st.error(f"讀取存貨數據時發生錯誤：{e}")
+        return []
 
 
 def add_new_herb(herb_id, brand, herb_name, cost_price, selling_price, stock):
     async def add_new_herb_async(herb_id, brand, herb_name, cost_price, selling_price, stock):
-        db.insert_herb(herb_id, brand, herb_name, cost_price, selling_price, stock)
-        st.cache_data.clear()
+        try:
+            db.insert_herb(herb_id, brand, herb_name, cost_price, selling_price, stock)
+        except Exception as e:
+            st.error(f"新增存貨數據時發生錯誤：{e}")
+        finally:
+            st.cache_data.clear()
 
     coro = add_new_herb_async(herb_id, brand, herb_name, cost_price, selling_price, stock)
-    with st.spinner("正在加入中藥數據..."):
+    with st.spinner("正在加入存貨數據..."):
         asyncio.run(coro)
     st.success(ccconfig.SUCCESS_MSG)
     time.sleep(1)
@@ -31,34 +37,47 @@ def add_new_herb(herb_id, brand, herb_name, cost_price, selling_price, stock):
 
 
 def update_inventory(old_df, edited_df):
-    different_rows = (old_df != edited_df).any(axis=1)
-    herb_id = old_df[different_rows]['key'].values[0]
-    for col in edited_df.columns:
-        if edited_df[col][different_rows].values[0] != old_df[col][different_rows].values[0]:
-            col_changed = col
-            new_value = edited_df.loc[different_rows, col].values[0]
-            if not isinstance(new_value, str):
-                new_value = float(new_value)
-            break
+    try:
+        different_rows = (old_df != edited_df).any(axis=1)
+        herb_id = old_df[different_rows]['key'].values[0]
+        for col in edited_df.columns:
+            if edited_df[col][different_rows].values[0] != old_df[col][different_rows].values[0]:
+                col_changed = col
+                new_value = edited_df.loc[different_rows, col].values[0]
+                if not isinstance(new_value, str):
+                    new_value = float(new_value)
+                break
 
-    async def update_herb_async(herb_id, col_changed, new_value):
-        db.update_herb(herb_id, {f"{col_changed}": new_value})
-        st.cache_data.clear()
+        async def update_herb_async(herb_id, col_changed, new_value):
+            try:
+                db.update_herb(herb_id, {f"{col_changed}": new_value})
+            except Exception as e:
+                st.error(f"更新存貨數據時發生錯誤：{e}")
+            finally:
+                st.cache_data.clear()
 
-    coro = update_herb_async(herb_id, col_changed, new_value)
-    with st.spinner("正在更新中藥數據..."):
-        asyncio.run(coro)
-    st.success(ccconfig.SUCCESS_MSG)
-    time.sleep(1)
-    st.experimental_rerun()
+        coro = update_herb_async(herb_id, col_changed, new_value)
+        with st.spinner("正在更新存貨數據..."):
+            asyncio.run(coro)
+        st.success(ccconfig.SUCCESS_MSG)
+        time.sleep(1)
+        st.experimental_rerun()
+
+    except Exception as e:
+        st.error(f"更新存貨數據時發生錯誤：{e}")
 
 
 def remove_herb(herb_id):
     async def remove_herb_async(herb_id):
-        db.delete_herb(herb_id)
-        st.cache_data.clear()
+        try:
+            db.delete_herb(herb_id)
+        except Exception as e:
+            st.error(f"移除存貨數據時發生錯誤：{e}")
+        finally:
+            st.cache_data.clear()
+
     coro = remove_herb_async(herb_id)
-    with st.spinner("正在移除中藥數據..."):
+    with st.spinner("正在移除存貨數據..."):
         asyncio.run(coro)
     st.success(ccconfig.SUCCESS_MSG)
     time.sleep(1)
@@ -98,7 +117,7 @@ def inventory():
 
     col1, col2 = st.columns([2,1])
     with col1:
-        st.subheader("編輯中藥數據：")
+        st.subheader("編輯存貨數據：")
         selected_brand = st.multiselect(
         "按品牌篩選",
         options=BRANDS,
@@ -187,7 +206,7 @@ def inventory():
         for sheet_name, data in excel_dataframes.items():
             data.to_excel(writer, sheet_name=sheet_name, index=False)
     b64_excel = base64.b64encode(excel_buffer.getvalue()).decode()
-    href_excel = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64_excel}" download="inventory.xlsx" class="button">下載Excel報告</a>'
+    href_excel = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64_excel}" download="inventory.xlsx" class="button">下載Excel存貨報告</a>'
     st.markdown(href_excel, unsafe_allow_html=True)
 
     # Export Word button
@@ -210,7 +229,7 @@ def inventory():
     doc.save(doc_buffer)
     doc_buffer.seek(0)
     b64_word = base64.b64encode(doc_buffer.read()).decode()
-    href_word = f'<a href="data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64,{b64_word}" download="inventory.docx" class="button">下載Word報告</a>'
+    href_word = f'<a href="data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64,{b64_word}" download="inventory.docx" class="button">下載Word存貨報告</a>'
     st.markdown(href_word, unsafe_allow_html=True)
 
 

@@ -13,13 +13,22 @@ import columns_categories_config as ccconfig
 
 @st.cache_data
 def fetch_all_incomes_cached():
-    data = db.fetch_all_incomes()
-    return data
+    try:
+        data = db.fetch_all_incomes()
+        return data
+    except Exception as e:
+        st.error(f"讀取收入數據時發生錯誤：{e}")
+        return []
 
 @st.cache_data
 def fetch_all_expenses_cached():
-    data = db.fetch_all_expenses()
-    return data
+    try:
+        data = db.fetch_all_expenses()
+        return data
+    except Exception as e:
+        st.error(f"讀取支出數據時發生錯誤：{e}")
+        return []
+
 
 def convert_to_monthly_summary(df, month_options):
     if df.empty:
@@ -73,8 +82,8 @@ def statistics():
         INCOME_CATEGORIES = ccconfig.INCOME_CATEGORIES # ["Consultation", "Herb Sale", "Class", "Others"]
         INCOME_COLUMN_ORDER = ccconfig.INCOME_COLUMN_ORDER # ["key", "category", "item", "customer", "amount"]
         df_income = pd.DataFrame(income_data, columns=INCOME_COLUMN_ORDER)
-        df_income['month'] = df_income['key'].apply(utils.format_month) # add a new column "month", by reading the date from "key"
-        month_options = df_income['month'].unique() # list of months, e.g. ['2023 May' '2023 Jun' '2023 Jul' '2023 Aug']
+        df_income['month'] = df_income['date'].apply(utils.format_month) # add a new column "month", by reading the "date" column
+        income_month_options = df_income['month'].unique() # list of months, e.g. ['2023 May' '2023 Jun' '2023 Jul' '2023 Aug']
         # Display for checking only, will hide it
         # st.dataframe(df_income,
         #                 hide_index=True, 
@@ -90,7 +99,7 @@ def statistics():
     if len(income_data) > 0:
         df_income_by_category = df_income.pivot_table(index='month', columns='category', values='amount', aggfunc='sum', fill_value=0)
         df_income_by_category.reset_index(inplace=True)
-        df_income_by_category = df_income_by_category.set_index('month').reindex(month_options).reset_index()
+        df_income_by_category = df_income_by_category.set_index('month').reindex(income_month_options).reset_index()
         df_income_by_category = df_income_by_category[['month'] + INCOME_CATEGORIES]
     else:
         df_income_by_category = pd.DataFrame(columns=['month'] + INCOME_CATEGORIES)
@@ -108,8 +117,8 @@ def statistics():
         EXPENSE_CATEGORIES = ccconfig.EXPENSE_CATEGORIES # ["Rent", "Salaries", "Utilities", "Advertising", "Travel", "Others"]
         EXPENSE_COLUMN_ORDER = ccconfig.EXPENSE_COLUMN_ORDER # ["key", "category", "item", "amount"]
         df_expense = pd.DataFrame(expense_data, columns=EXPENSE_COLUMN_ORDER)
-        df_expense['month'] = df_expense['key'].apply(utils.format_month) # add a new column "month", by reading the date from "key"
-        month_options = df_expense['month'].unique() # list of months, e.g. ['2023 May' '2023 Jun' '2023 Jul' '2023 Aug']
+        df_expense['month'] = df_expense['date'].apply(utils.format_month) # add a new column "month", by reading the "date" column
+        expense_month_options = df_expense['month'].unique() # list of months, e.g. ['2023 May' '2023 Jun' '2023 Jul' '2023 Aug']
         # Display for checking only, will hide it
         # st.dataframe(df_expense,
         #                 hide_index=True, 
@@ -124,7 +133,7 @@ def statistics():
     if len(expense_data) > 0:
         df_expense_by_category = df_expense.pivot_table(index='month', columns='category', values='amount', aggfunc='sum', fill_value=0)
         df_expense_by_category.reset_index(inplace=True)
-        df_expense_by_category = df_expense_by_category.set_index('month').reindex(month_options).reset_index()
+        df_expense_by_category = df_expense_by_category.set_index('month').reindex(expense_month_options).reset_index()
         df_expense_by_category = df_expense_by_category[['month'] + EXPENSE_CATEGORIES]
     else:
         df_expense_by_category = pd.DataFrame(columns=['month'] + EXPENSE_CATEGORIES)
@@ -137,12 +146,12 @@ def statistics():
                     column_config={"month": st.column_config.TextColumn("月份")},
                 )
 
-
-    if len(income_data) > 0 and len(expense_data) > 0:
+ 
+    if len(income_data) > 0 and len(expense_data) > 0 and len(income_month_options)==len(expense_month_options):
         st.subheader("總收入支出總結")
-        df_income_by_month = convert_to_monthly_summary(df_income, month_options)
+        df_income_by_month = convert_to_monthly_summary(df_income, income_month_options)
         df_income_by_month = df_income_by_month.reset_index(drop=True)
-        df_expense_by_month = convert_to_monthly_summary(df_expense, month_options)
+        df_expense_by_month = convert_to_monthly_summary(df_expense, expense_month_options)
         df_expense_by_month = df_expense_by_month.reset_index(drop=True)
 
         df_income_expense_by_month, months_list = get_income_expense_by_month(df_income_by_month, df_expense_by_month)
@@ -232,9 +241,10 @@ def statistics():
         # Export excel and word files
         st.divider()
         st.subheader("下載統計文件")
+
+
         # Export excel file
         excel_buffer = io.BytesIO()
-
         # Modify names of columns
         df1_2_new_column_names = {'month': '月份'}
         df_income_by_category.rename(columns=df1_2_new_column_names, inplace=True)
@@ -249,7 +259,7 @@ def statistics():
             df_income_expense_by_month.to_excel(writer, sheet_name="總收入支出總結", index=False)
 
         b64 = base64.b64encode(excel_buffer.getvalue()).decode()
-        href = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="statistics.xlsx" class="button">下載Excel報告</a>'
+        href = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="statistics.xlsx" class="button">下載Excel統計報告</a>'
         st.markdown(href, unsafe_allow_html=True)
 
         # Export word file
@@ -263,12 +273,16 @@ def statistics():
         doc.save(doc_buffer)
         doc_buffer.seek(0)
         b64 = base64.b64encode(doc_buffer.read()).decode()
-        href = f'<a href="data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64,{b64}" download="statistics.docx" class="button">下載Word報告</a>'
+        href = f'<a href="data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64,{b64}" download="statistics.docx" class="button">下載Word統計報告</a>'
         st.markdown(href, unsafe_allow_html=True)
+
+    elif len(income_data) > 0 and len(expense_data) > 0 and len(income_month_options)!=len(expense_month_options):
+        st.subheader("總收入支出總結")
+        st.warning("請注意：您的收入和支出數據月份並不一致。 如果想查看總收入、總支出及相關圖表，請先引入相關月份的數據。")
 
     else:
         st.subheader("總收入支出總結")
-        st.warning("請注意！您的收入或支出數據並不存在。 如果想查看總收入、總支出及相關圖表，請先引入相關數據。")
+        st.warning("請注意：您的收入或支出數據並不存在。 如果想查看總收入、總支出及相關圖表，請先引入相關數據。")
 
 
 if __name__ == "__main__":
