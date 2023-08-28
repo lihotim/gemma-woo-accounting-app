@@ -1,6 +1,10 @@
 import streamlit as st
+import streamlit_authenticator as stauth
 from streamlit_option_menu import option_menu
 from pathlib import Path
+
+import database as db
+
 
 # pages
 from inventory_page import inventory
@@ -48,11 +52,33 @@ def streamlit_menu():
 
 selected = streamlit_menu()
 
-if selected == TAB_OPTIONS[0]:
-    inventory()
-if selected == TAB_OPTIONS[1]:
-    income()
-if selected == TAB_OPTIONS[2]:
-    expense()
-if selected == TAB_OPTIONS[3]:
-    statistics()
+# --- USER AUTHENTICATION ---
+users = db.fetch_all_users()
+
+usernames = [user["key"] for user in users]
+names = [user["name"] for user in users]
+hashed_passwords = [user["password"] for user in users]
+
+authenticator = stauth.Authenticate(names, usernames, hashed_passwords,
+    "sales_dashboard", "abcdef", cookie_expiry_days=30)
+
+name, authentication_status, username = authenticator.login("Login", "main")
+
+if authentication_status == False:
+    st.error("用戶名稱或密碼不正確。")
+
+if authentication_status == None:
+    st.warning("請輸入用戶名稱及密碼。")
+
+if authentication_status:
+    st.sidebar.title(f"歡迎您，{name}！")
+    authenticator.logout("登出", "sidebar")
+
+    if selected == TAB_OPTIONS[0]:
+        inventory()
+    if selected == TAB_OPTIONS[1]:
+        income()
+    if selected == TAB_OPTIONS[2]:
+        expense()
+    if selected == TAB_OPTIONS[3]:
+        statistics()

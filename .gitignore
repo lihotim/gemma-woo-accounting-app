@@ -177,3 +177,4 @@ pyrightconfig.json
 
 # my docs
 test.ipynb
+upload_to_db.py
