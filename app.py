@@ -62,7 +62,7 @@ hashed_passwords = [user["password"] for user in users]
 authenticator = stauth.Authenticate(names, usernames, hashed_passwords,
     "sales_dashboard", "abcdef", cookie_expiry_days=30)
 
-name, authentication_status, username = authenticator.login("Login", "main")
+name, authentication_status, username = authenticator.login("請先登入：", "sidebar")
 
 if authentication_status == False:
     st.error("用戶名稱或密碼不正確。")
